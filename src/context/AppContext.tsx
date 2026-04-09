@@ -200,6 +200,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return state.threads.filter(t => t.clientId === userId || t.providerId === userId);
   }, [state.threads]);
 
+  const updateProfile = useCallback((profile: ProviderProfile) => {
+    setState(s => ({
+      ...s,
+      profiles: s.profiles.map(p => p.id === profile.id ? profile : p),
+    }));
+  }, []);
+
   const addProviderEvent = useCallback((event: Omit<ProviderEvent, 'id'>) => {
     const newEvent: ProviderEvent = { ...event, id: `pe-${Date.now()}` };
     setState(s => ({ ...s, providerEvents: [...s.providerEvents, newEvent] }));
