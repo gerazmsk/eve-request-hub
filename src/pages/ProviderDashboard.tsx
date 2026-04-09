@@ -185,6 +185,10 @@ export default function ProviderDashboard() {
               <Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="mt-1" placeholder="Email address" type="email" />
             </div>
             <div>
+              <Label>Job Cost</Label>
+              <Input value={form.jobCost} onChange={e => setForm(f => ({ ...f, jobCost: e.target.value }))} className="mt-1" placeholder="e.g. $500" />
+            </div>
+            <div>
               <Label>Status</Label>
               <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v as ProviderEventStatus }))}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
