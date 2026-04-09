@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { User, UserRole, ProviderProfile, ServiceRequest, MessageThread, Message } from '@/types';
+import { User, UserRole, ProviderProfile, ServiceRequest, MessageThread, Message, ProviderEvent } from '@/types';
 import { seedUsers, seedProfiles, seedRequests, seedThreads } from '@/data/mockData';
 
 interface AppState {
@@ -7,6 +7,7 @@ interface AppState {
   profiles: ProviderProfile[];
   requests: ServiceRequest[];
   threads: MessageThread[];
+  providerEvents: ProviderEvent[];
   currentUser: User | null;
   selectedRole: UserRole | null;
 }
@@ -29,6 +30,9 @@ interface AppContextType extends AppState {
   sendMessage: (threadId: string, senderId: string, text: string) => void;
   getUserThreads: (userId: string) => MessageThread[];
   updateProfile: (profile: ProviderProfile) => void;
+  addProviderEvent: (event: Omit<ProviderEvent, 'id'>) => void;
+  updateProviderEvent: (event: ProviderEvent) => void;
+  deleteProviderEvent: (eventId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -48,6 +52,7 @@ function loadState(): AppState {
     profiles: seedProfiles,
     requests: seedRequests,
     threads: seedThreads,
+    providerEvents: [],
     currentUser: null,
     selectedRole: null,
   };
@@ -202,6 +207,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
+  const addProviderEvent = useCallback((event: Omit<ProviderEvent, 'id'>) => {
+    const newEvent: ProviderEvent = { ...event, id: `pe-${Date.now()}` };
+    setState(s => ({ ...s, providerEvents: [...s.providerEvents, newEvent] }));
+  }, []);
+
+  const updateProviderEvent = useCallback((event: ProviderEvent) => {
+    setState(s => ({
+      ...s,
+      providerEvents: s.providerEvents.map(e => e.id === event.id ? event : e),
+    }));
+  }, []);
+
+  const deleteProviderEvent = useCallback((eventId: string) => {
+    setState(s => ({
+      ...s,
+      providerEvents: s.providerEvents.filter(e => e.id !== eventId),
+    }));
+  }, []);
+
   const value: AppContextType = {
     ...state,
     setSelectedRole,
@@ -221,6 +245,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     sendMessage,
     getUserThreads,
     updateProfile,
+    addProviderEvent,
+    updateProviderEvent,
+    deleteProviderEvent,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
