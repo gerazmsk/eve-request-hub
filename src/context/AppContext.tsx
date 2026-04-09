@@ -52,6 +52,7 @@ function loadState(): AppState {
     profiles: seedProfiles,
     requests: seedRequests,
     threads: seedThreads,
+    providerEvents: [],
     currentUser: null,
     selectedRole: null,
   };
@@ -199,10 +200,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return state.threads.filter(t => t.clientId === userId || t.providerId === userId);
   }, [state.threads]);
 
-  const updateProfile = useCallback((profile: ProviderProfile) => {
+  const addProviderEvent = useCallback((event: Omit<ProviderEvent, 'id'>) => {
+    const newEvent: ProviderEvent = { ...event, id: `pe-${Date.now()}` };
+    setState(s => ({ ...s, providerEvents: [...s.providerEvents, newEvent] }));
+  }, []);
+
+  const updateProviderEvent = useCallback((event: ProviderEvent) => {
     setState(s => ({
       ...s,
-      profiles: s.profiles.map(p => p.id === profile.id ? profile : p),
+      providerEvents: s.providerEvents.map(e => e.id === event.id ? event : e),
+    }));
+  }, []);
+
+  const deleteProviderEvent = useCallback((eventId: string) => {
+    setState(s => ({
+      ...s,
+      providerEvents: s.providerEvents.filter(e => e.id !== eventId),
     }));
   }, []);
 
@@ -225,6 +238,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     sendMessage,
     getUserThreads,
     updateProfile,
+    addProviderEvent,
+    updateProviderEvent,
+    deleteProviderEvent,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
