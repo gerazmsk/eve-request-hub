@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { User, UserRole, ProviderProfile, ServiceRequest, MessageThread, Message } from '@/types';
+import { User, UserRole, ProviderProfile, ServiceRequest, MessageThread, Message, ProviderEvent } from '@/types';
 import { seedUsers, seedProfiles, seedRequests, seedThreads } from '@/data/mockData';
 
 interface AppState {
@@ -7,6 +7,7 @@ interface AppState {
   profiles: ProviderProfile[];
   requests: ServiceRequest[];
   threads: MessageThread[];
+  providerEvents: ProviderEvent[];
   currentUser: User | null;
   selectedRole: UserRole | null;
 }
