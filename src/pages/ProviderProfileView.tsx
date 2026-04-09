@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Star, MapPin, MessageCircle, Calendar } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { useApp } from '@/context/AppContext';
 import { ClientNav } from '@/components/ClientNav';
 
@@ -98,12 +99,11 @@ export default function ProviderProfileView() {
           </div>
         </div>
 
-        {/* Availability placeholder */}
+        {/* Availability */}
         <div>
           <h2 className="font-display text-lg font-semibold mb-2">Availability</h2>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground rounded-xl border bg-card p-4">
-            <Calendar className="h-4 w-4" />
-            <span>Calendar available upon request</span>
+          <div className="rounded-xl border bg-card p-4 flex justify-center">
+            <Calendar mode="single" className="p-3 pointer-events-auto" />
           </div>
         </div>
       </div>
