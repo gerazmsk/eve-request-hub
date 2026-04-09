@@ -14,7 +14,244 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      message_threads: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          provider_id: string
+          request_id: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          provider_id: string
+          request_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          provider_id?: string
+          request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_threads_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          created_at: string
+          id: string
+          sender_id: string
+          text: string
+          thread_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          sender_id: string
+          text: string
+          thread_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          sender_id?: string
+          text?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string
+          role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      provider_events: {
+        Row: {
+          address: string
+          client_name: string
+          created_at: string
+          date: string
+          email: string
+          id: string
+          job_cost: string
+          phone: string
+          provider_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string
+          client_name?: string
+          created_at?: string
+          date: string
+          email?: string
+          id?: string
+          job_cost?: string
+          phone?: string
+          provider_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          client_name?: string
+          created_at?: string
+          date?: string
+          email?: string
+          id?: string
+          job_cost?: string
+          phone?: string
+          provider_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      provider_profiles: {
+        Row: {
+          about: string
+          category: string
+          cover_image: string
+          created_at: string
+          gallery: string[]
+          id: string
+          location: string
+          price_label: string
+          profile_image: string
+          rating: number
+          review_count: number
+          tags: string[]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          about?: string
+          category?: string
+          cover_image?: string
+          created_at?: string
+          gallery?: string[]
+          id?: string
+          location?: string
+          price_label?: string
+          profile_image?: string
+          rating?: number
+          review_count?: number
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          about?: string
+          category?: string
+          cover_image?: string
+          created_at?: string
+          gallery?: string[]
+          id?: string
+          location?: string
+          price_label?: string
+          profile_image?: string
+          rating?: number
+          review_count?: number
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      service_requests: {
+        Row: {
+          budget: string
+          category: string
+          client_id: string
+          created_at: string
+          event_date: string
+          event_time: string
+          event_type: string
+          id: string
+          location: string
+          notes: string
+          provider_id: string
+          status: string
+        }
+        Insert: {
+          budget?: string
+          category: string
+          client_id: string
+          created_at?: string
+          event_date: string
+          event_time: string
+          event_type: string
+          id?: string
+          location?: string
+          notes?: string
+          provider_id: string
+          status?: string
+        }
+        Update: {
+          budget?: string
+          category?: string
+          client_id?: string
+          created_at?: string
+          event_date?: string
+          event_time?: string
+          event_type?: string
+          id?: string
+          location?: string
+          notes?: string
+          provider_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
