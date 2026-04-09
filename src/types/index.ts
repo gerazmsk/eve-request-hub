@@ -29,6 +29,18 @@ export interface ProviderProfile {
 
 export type RequestStatus = 'pending' | 'confirmed' | 'declined';
 
+export type ProviderEventStatus = 'pending' | 'approved' | 'canceled' | 'completed';
+
+export interface ProviderEvent {
+  id: string;
+  providerId: string;
+  date: string;
+  clientName: string;
+  jobCost: string;
+  status: ProviderEventStatus;
+  address: string;
+}
+
 export interface ServiceRequest {
   id: string;
   clientId: string;
