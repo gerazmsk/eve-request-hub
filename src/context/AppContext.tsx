@@ -30,6 +30,9 @@ interface AppContextType extends AppState {
   sendMessage: (threadId: string, senderId: string, text: string) => void;
   getUserThreads: (userId: string) => MessageThread[];
   updateProfile: (profile: ProviderProfile) => void;
+  addProviderEvent: (event: Omit<ProviderEvent, 'id'>) => void;
+  updateProviderEvent: (event: ProviderEvent) => void;
+  deleteProviderEvent: (eventId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
