@@ -36,6 +36,8 @@ export interface ProviderEvent {
   providerId: string;
   date: string;
   clientName: string;
+  phone: string;
+  email: string;
   jobCost: string;
   status: ProviderEventStatus;
   address: string;
