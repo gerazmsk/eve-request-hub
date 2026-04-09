@@ -13,7 +13,7 @@ import { format, parseISO, isSameDay } from 'date-fns';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import type { ProviderEvent, ProviderEventStatus } from '@/types';
 
-const emptyForm = { clientName: '', jobCost: '', status: 'pending' as ProviderEventStatus, address: '' };
+const emptyForm = { clientName: '', phone: '', email: '', jobCost: '', status: 'pending' as ProviderEventStatus, address: '' };
 
 export default function ProviderDashboard() {
   const { currentUser, getProviderRequests, getUserById, providerEvents, addProviderEvent, updateProviderEvent, deleteProviderEvent } = useApp();
@@ -45,7 +45,7 @@ export default function ProviderDashboard() {
 
   const openEditEvent = (ev: ProviderEvent) => {
     setEditingEvent(ev);
-    setForm({ clientName: ev.clientName, jobCost: ev.jobCost, status: ev.status, address: ev.address });
+    setForm({ clientName: ev.clientName, phone: ev.phone, email: ev.email, jobCost: ev.jobCost, status: ev.status, address: ev.address });
     setModalOpen(true);
   };
 
@@ -177,8 +177,12 @@ export default function ProviderDashboard() {
               <Input value={form.clientName} onChange={e => setForm(f => ({ ...f, clientName: e.target.value }))} className="mt-1" placeholder="Enter client name" />
             </div>
             <div>
-              <Label>Job Cost</Label>
-              <Input value={form.jobCost} onChange={e => setForm(f => ({ ...f, jobCost: e.target.value }))} className="mt-1" placeholder="e.g. $500" />
+              <Label>Phone</Label>
+              <Input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="mt-1" placeholder="Phone number" type="tel" />
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="mt-1" placeholder="Email address" type="email" />
             </div>
             <div>
               <Label>Status</Label>
