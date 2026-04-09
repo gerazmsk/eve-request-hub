@@ -1,15 +1,21 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useApp } from '@/context/AppContext';
+import { useEffect, useState } from 'react';
 
 export default function Account() {
   const navigate = useNavigate();
-  const { selectedRole } = useApp();
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
-  if (!selectedRole) {
-    navigate('/');
-    return null;
-  }
+  useEffect(() => {
+    const role = sessionStorage.getItem('eve-selected-role');
+    if (!role) {
+      navigate('/');
+    } else {
+      setSelectedRole(role);
+    }
+  }, [navigate]);
+
+  if (!selectedRole) return null;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6">
@@ -20,23 +26,9 @@ export default function Account() {
             {selectedRole === 'client' ? 'Find the perfect event services' : 'Grow your event business'}
           </p>
         </div>
-
         <div className="space-y-3">
-          <Button
-            onClick={() => navigate('/signup')}
-            className="w-full h-12 text-base rounded-xl"
-            size="lg"
-          >
-            Sign up
-          </Button>
-          <Button
-            onClick={() => navigate('/login')}
-            variant="outline"
-            className="w-full h-12 text-base rounded-xl"
-            size="lg"
-          >
-            Log in
-          </Button>
+          <Button onClick={() => navigate('/signup')} className="w-full h-12 text-base rounded-xl" size="lg">Sign up</Button>
+          <Button onClick={() => navigate('/login')} variant="outline" className="w-full h-12 text-base rounded-xl" size="lg">Log in</Button>
         </div>
       </div>
     </div>

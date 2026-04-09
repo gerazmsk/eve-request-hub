@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/hooks/useAuth';
 import { CATEGORIES } from '@/types';
 import { ClientNav } from '@/components/ClientNav';
 import { useState } from 'react';
 
 export default function ClientHome() {
-  const { currentUser } = useApp();
+  const { profile } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
 
@@ -21,20 +21,13 @@ export default function ClientHome() {
         <div className="animate-fade-in">
           <p className="text-muted-foreground text-sm">Welcome back</p>
           <h1 className="font-display text-2xl font-bold">
-            Hello {currentUser?.firstName || 'there'} 👋
+            Hello {profile?.first_name || 'there'} 👋
           </h1>
         </div>
-
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search services..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-10 rounded-xl h-11"
-          />
+          <Input placeholder="Search services..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10 rounded-xl h-11" />
         </div>
-
         <div>
           <h2 className="font-display text-lg font-semibold mb-3">Event Services</h2>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
