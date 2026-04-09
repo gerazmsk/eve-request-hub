@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AppProvider } from "@/context/AppContext";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Welcome from "./pages/Welcome";
 import AccountPage from "./pages/AccountPage";
 import SignUp from "./pages/SignUp";
@@ -25,43 +25,63 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function AuthRedirect({ children }: { children: React.ReactNode }) {
+  const { user, profile, isReady } = useAuth();
+  if (!isReady) return <div className="flex min-h-screen items-center justify-center"><p>Loading...</p></div>;
+  if (user && profile) {
+    return <Navigate to={profile.role === 'client' ? '/client' : '/provider'} replace />;
+  }
+  return <>{children}</>;
+}
+
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { user, isReady } = useAuth();
+  if (!isReady) return <div className="flex min-h-screen items-center justify-center"><p>Loading...</p></div>;
+  if (!user) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/" element={<AuthRedirect><Welcome /></AuthRedirect>} />
+    <Route path="/account" element={<AuthRedirect><AccountPage /></AuthRedirect>} />
+    <Route path="/signup" element={<AuthRedirect><SignUp /></AuthRedirect>} />
+    <Route path="/login" element={<AuthRedirect><LogIn /></AuthRedirect>} />
+
+    {/* Client routes */}
+    <Route path="/client" element={<RequireAuth><ClientHome /></RequireAuth>} />
+    <Route path="/client/category/:category" element={<RequireAuth><ProviderListing /></RequireAuth>} />
+    <Route path="/client/provider/:profileId" element={<RequireAuth><ProviderProfileView /></RequireAuth>} />
+    <Route path="/client/request/:profileId" element={<RequireAuth><CreateRequest /></RequireAuth>} />
+    <Route path="/client/request-sent" element={<RequireAuth><RequestSent /></RequireAuth>} />
+    <Route path="/client/requests" element={<RequireAuth><MyRequests /></RequireAuth>} />
+    <Route path="/client/requests/:requestId" element={<RequireAuth><RequestDetail /></RequireAuth>} />
+    <Route path="/client/messages" element={<RequireAuth><MessageList /></RequireAuth>} />
+    <Route path="/client/messages/:threadId" element={<RequireAuth><ConversationThread /></RequireAuth>} />
+    <Route path="/client/account" element={<RequireAuth><AccountSettings /></RequireAuth>} />
+
+    {/* Provider routes */}
+    <Route path="/provider" element={<RequireAuth><ProviderDashboard /></RequireAuth>} />
+    <Route path="/provider/events/:requestId" element={<RequireAuth><ProviderEventDetail /></RequireAuth>} />
+    <Route path="/provider/messages" element={<RequireAuth><MessageList /></RequireAuth>} />
+    <Route path="/provider/messages/:threadId" element={<RequireAuth><ConversationThread /></RequireAuth>} />
+    <Route path="/provider/profile" element={<RequireAuth><ProviderEditProfile /></RequireAuth>} />
+    <Route path="/provider/account" element={<RequireAuth><AccountSettings /></RequireAuth>} />
+
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <AppProvider>
+      <AuthProvider>
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Welcome />} />
-            <Route path="/account" element={<AccountPage />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/login" element={<LogIn />} />
-
-            {/* Client routes */}
-            <Route path="/client" element={<ClientHome />} />
-            <Route path="/client/category/:category" element={<ProviderListing />} />
-            <Route path="/client/provider/:profileId" element={<ProviderProfileView />} />
-            <Route path="/client/request/:profileId" element={<CreateRequest />} />
-            <Route path="/client/request-sent" element={<RequestSent />} />
-            <Route path="/client/requests" element={<MyRequests />} />
-            <Route path="/client/requests/:requestId" element={<RequestDetail />} />
-            <Route path="/client/messages" element={<MessageList />} />
-            <Route path="/client/messages/:threadId" element={<ConversationThread />} />
-            <Route path="/client/account" element={<AccountSettings />} />
-
-            {/* Provider routes */}
-            <Route path="/provider" element={<ProviderDashboard />} />
-            <Route path="/provider/events/:requestId" element={<ProviderEventDetail />} />
-            <Route path="/provider/messages" element={<MessageList />} />
-            <Route path="/provider/messages/:threadId" element={<ConversationThread />} />
-            <Route path="/provider/profile" element={<ProviderEditProfile />} />
-            <Route path="/provider/account" element={<AccountSettings />} />
-
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AppRoutes />
         </BrowserRouter>
-      </AppProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

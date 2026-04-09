@@ -1,21 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SignUp() {
   const navigate = useNavigate();
-  const { selectedRole, signUp } = useApp();
+  const { signUp } = useAuth();
+  const { toast } = useToast();
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '' });
+  const [loading, setLoading] = useState(false);
 
-  if (!selectedRole) { navigate('/'); return null; }
+  useEffect(() => {
+    const role = sessionStorage.getItem('eve-selected-role');
+    if (!role) navigate('/');
+    else setSelectedRole(role);
+  }, [navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  if (!selectedRole) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = signUp({ ...form, role: selectedRole });
-    navigate(user.role === 'client' ? '/client' : '/provider/profile');
+    setLoading(true);
+    const { error } = await signUp(form.email, form.password, {
+      role: selectedRole,
+      first_name: form.firstName,
+      last_name: form.lastName,
+      phone: form.phone,
+    });
+    setLoading(false);
+    if (error) {
+      toast({ title: 'Sign up failed', description: error.message, variant: 'destructive' });
+    } else {
+      sessionStorage.removeItem('eve-selected-role');
+      // Auth state change will redirect automatically
+    }
   };
 
   return (
@@ -27,7 +49,6 @@ export default function SignUp() {
             {selectedRole === 'client' ? 'Client account' : 'Provider account'}
           </p>
         </div>
-
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -49,11 +70,12 @@ export default function SignUp() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} className="rounded-xl" />
+            <Input id="password" type="password" required minLength={6} value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} className="rounded-xl" />
           </div>
         </div>
-
-        <Button type="submit" className="w-full h-12 rounded-xl text-base">Create</Button>
+        <Button type="submit" className="w-full h-12 rounded-xl text-base" disabled={loading}>
+          {loading ? 'Creating...' : 'Create'}
+        </Button>
       </form>
     </div>
   );

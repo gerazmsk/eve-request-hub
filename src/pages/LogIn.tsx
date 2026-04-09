@@ -1,26 +1,26 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LogIn() {
-  const navigate = useNavigate();
-  const { logIn } = useApp();
+  const { logIn } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = logIn(email, password);
-    if (user) {
-      navigate(user.role === 'client' ? '/client' : '/provider');
-    } else {
-      toast({ title: 'Login failed', description: 'Invalid email or password', variant: 'destructive' });
+    setLoading(true);
+    const { error } = await logIn(email, password);
+    setLoading(false);
+    if (error) {
+      toast({ title: 'Login failed', description: error.message, variant: 'destructive' });
     }
+    // Auth state change will redirect automatically via AuthRedirect
   };
 
   return (
@@ -29,7 +29,6 @@ export default function LogIn() {
         <div className="text-center space-y-1">
           <h1 className="font-display text-2xl font-bold">Log in Your EVE account</h1>
         </div>
-
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
@@ -40,12 +39,9 @@ export default function LogIn() {
             <Input id="password" type="password" required value={password} onChange={e => setPassword(e.target.value)} className="rounded-xl" />
           </div>
         </div>
-
-        <Button type="submit" className="w-full h-12 rounded-xl text-base">Log In</Button>
-
-        <p className="text-center text-xs text-muted-foreground">
-          Demo: george@test.com / pass123 (client) or bill@test.com / pass123 (provider)
-        </p>
+        <Button type="submit" className="w-full h-12 rounded-xl text-base" disabled={loading}>
+          {loading ? 'Logging in...' : 'Log In'}
+        </Button>
       </form>
     </div>
   );
