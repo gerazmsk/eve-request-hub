@@ -1,11 +1,10 @@
-import { Calendar, MessageCircle, User, Settings } from 'lucide-react';
+import { Calendar, MessageCircle, User } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 
 const items = [
   { to: '/provider', icon: Calendar, label: 'My Events' },
   { to: '/provider/messages', icon: MessageCircle, label: 'Messages' },
   { to: '/provider/profile', icon: User, label: 'My Profile' },
-  { to: '/provider/account', icon: Settings, label: 'Account' },
 ];
 
 export function ProviderNav() {

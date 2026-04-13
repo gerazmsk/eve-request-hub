@@ -66,7 +66,7 @@ const AppRoutes = () => (
     <Route path="/provider/messages" element={<RequireAuth><MessageList /></RequireAuth>} />
     <Route path="/provider/messages/:threadId" element={<RequireAuth><ConversationThread /></RequireAuth>} />
     <Route path="/provider/profile" element={<RequireAuth><ProviderEditProfile /></RequireAuth>} />
-    <Route path="/provider/account" element={<RequireAuth><AccountSettings /></RequireAuth>} />
+    
 
     <Route path="*" element={<NotFound />} />
   </Routes>
