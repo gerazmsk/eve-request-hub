@@ -1,4 +1,4 @@
-import { Calendar, MessageCircle, User, FileText } from 'lucide-react';
+import { Calendar, MessageCircle, User, Clock } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { NotificationBadge } from '@/components/NotificationBadge';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
@@ -8,6 +8,7 @@ export function ProviderNav() {
 
   const items = [
     { to: '/provider', icon: Calendar, label: 'My Events', badge: unreadRequests, onClear: clearUnreadRequests },
+    { to: '/provider/availability', icon: Clock, label: 'Availability', badge: 0, onClear: undefined },
     { to: '/provider/messages', icon: MessageCircle, label: 'Messages', badge: unreadMessages, onClear: clearUnreadMessages },
     { to: '/provider/profile', icon: User, label: 'My Profile', badge: 0, onClear: undefined },
   ];

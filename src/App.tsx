@@ -20,6 +20,7 @@ import ConversationThread from "./pages/ConversationThread";
 import ProviderDashboard from "./pages/ProviderDashboard";
 import ProviderEventDetail from "./pages/ProviderEventDetail";
 import ProviderEditProfile from "./pages/ProviderEditProfile";
+import ProviderAvailability from "./pages/ProviderAvailability";
 import AccountSettings from "./pages/AccountSettings";
 import NotFound from "./pages/NotFound";
 
@@ -63,6 +64,7 @@ const AppRoutes = () => (
     {/* Provider routes */}
     <Route path="/provider" element={<RequireAuth><ProviderDashboard /></RequireAuth>} />
     <Route path="/provider/events/:requestId" element={<RequireAuth><ProviderEventDetail /></RequireAuth>} />
+    <Route path="/provider/availability" element={<RequireAuth><ProviderAvailability /></RequireAuth>} />
     <Route path="/provider/messages" element={<RequireAuth><MessageList /></RequireAuth>} />
     <Route path="/provider/messages/:threadId" element={<RequireAuth><ConversationThread /></RequireAuth>} />
     <Route path="/provider/profile" element={<RequireAuth><ProviderEditProfile /></RequireAuth>} />

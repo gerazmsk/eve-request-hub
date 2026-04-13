@@ -111,6 +111,33 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_availability: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          provider_id: string
+          time_slots: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          provider_id: string
+          time_slots?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          provider_id?: string
+          time_slots?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       provider_events: {
         Row: {
           address: string
