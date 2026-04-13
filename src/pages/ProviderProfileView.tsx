@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ClientNav } from '@/components/ClientNav';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { parseISO, isSameDay, format } from 'date-fns';
 
 export default function ProviderProfileView() {
   const { profileId } = useParams<{ profileId: string }>();
@@ -111,17 +112,7 @@ export default function ProviderProfileView() {
             <p className="text-xs text-muted-foreground mt-1">— Sarah M.</p>
           </div>
         </div>
-        <div>
-          <h2 className="font-display text-lg font-semibold mb-2">Availability</h2>
-          <div className="rounded-xl border bg-card p-2 sm:p-4 overflow-hidden">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              className="p-0 sm:p-3 pointer-events-auto w-full [&_.rdp-months]:w-full [&_.rdp-month]:w-full [&_.rdp-table]:w-full [&_.rdp-head_row]:flex [&_.rdp-head_row]:justify-around [&_.rdp-row]:flex [&_.rdp-row]:justify-around [&_.rdp-cell]:flex-1 [&_.rdp-cell]:text-center [&_.rdp-day]:mx-auto"
-            />
-          </div>
-        </div>
+        <AvailabilitySection providerId={profile.user_id} selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
       </div>
       <div className="fixed bottom-16 left-0 right-0 p-4 bg-background/90 backdrop-blur-sm border-t">
         <div className="flex gap-3 max-w-lg mx-auto">
