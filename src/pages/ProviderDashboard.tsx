@@ -121,12 +121,12 @@ export default function ProviderDashboard() {
           <p className="text-sm text-muted-foreground">Welcome back</p>
           <h1 className="font-display text-2xl font-bold">My Events</h1>
         </div>
-        <div className="rounded-xl border bg-card p-3 flex justify-center">
+        <div className="rounded-xl border bg-card p-2 sm:p-3 overflow-hidden">
           <Calendar
             mode="single"
             selected={selectedDate}
             onSelect={setSelectedDate}
-            className="pointer-events-auto"
+            className="pointer-events-auto w-full [&_.rdp-months]:w-full [&_.rdp-month]:w-full [&_.rdp-table]:w-full [&_.rdp-head_row]:flex [&_.rdp-head_row]:justify-around [&_.rdp-row]:flex [&_.rdp-row]:justify-around [&_.rdp-cell]:flex-1 [&_.rdp-cell]:text-center [&_.rdp-day]:mx-auto"
             modifiers={{ hasEvent: datesWithEvents }}
             modifiersStyles={{ hasEvent: { fontWeight: 700, textDecoration: 'underline', textDecorationColor: 'hsl(var(--primary))' } }}
           />
