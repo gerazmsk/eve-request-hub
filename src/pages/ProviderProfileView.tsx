@@ -9,6 +9,62 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { parseISO, isSameDay, format } from 'date-fns';
 
+function formatTime12(t: string) {
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+}
+
+function AvailabilitySection({ providerId, selectedDate, setSelectedDate }: { providerId: string; selectedDate: Date | undefined; setSelectedDate: (d: Date | undefined) => void }) {
+  const { data: availability = [] } = useQuery({
+    queryKey: ['provider-availability-view', providerId],
+    queryFn: async () => {
+      const { data } = await supabase.from('provider_availability').select('*').eq('provider_id', providerId).order('date');
+      return data || [];
+    },
+  });
+
+  const availableDates = availability.map((a: any) => parseISO(a.date));
+  const hasAvailability = availability.length > 0;
+  const selectedDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
+  const dateAvail = availability.find((a: any) => a.date === selectedDateStr);
+  const timeSlots: string[] = dateAvail?.time_slots || [];
+
+  return (
+    <div>
+      <h2 className="font-display text-lg font-semibold mb-2">Availability</h2>
+      <div className="rounded-xl border bg-card p-2 sm:p-4 overflow-hidden">
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={setSelectedDate}
+          className="p-0 sm:p-3 pointer-events-auto w-full [&_.rdp-months]:w-full [&_.rdp-month]:w-full [&_.rdp-table]:w-full [&_.rdp-head_row]:flex [&_.rdp-head_row]:justify-around [&_.rdp-row]:flex [&_.rdp-row]:justify-around [&_.rdp-cell]:flex-1 [&_.rdp-cell]:text-center [&_.rdp-day]:mx-auto"
+          disabled={hasAvailability ? (date) => date < new Date(new Date().setHours(0,0,0,0)) || !availableDates.some(d => isSameDay(d, date)) : (date) => date < new Date(new Date().setHours(0,0,0,0))}
+          modifiers={hasAvailability ? { available: availableDates } : {}}
+          modifiersStyles={hasAvailability ? { available: { fontWeight: 700, textDecorationColor: 'hsl(var(--primary))' } } : {}}
+        />
+      </div>
+      {selectedDate && timeSlots.length > 0 && (
+        <div className="mt-3">
+          <p className="text-sm font-medium mb-2">Available times on {format(selectedDate, 'MMM d')}:</p>
+          <div className="flex flex-wrap gap-2">
+            {timeSlots.map(slot => (
+              <span key={slot} className="text-xs font-medium bg-primary/10 text-primary rounded-full px-3 py-1">{formatTime12(slot)}</span>
+            ))}
+          </div>
+        </div>
+      )}
+      {selectedDate && hasAvailability && timeSlots.length === 0 && (
+        <p className="text-sm text-muted-foreground mt-2">No availability on this date.</p>
+      )}
+      {!hasAvailability && (
+        <p className="text-xs text-muted-foreground mt-2">This provider hasn't set specific availability yet.</p>
+      )}
+    </div>
+  );
+}
+
 export default function ProviderProfileView() {
   const { profileId } = useParams<{ profileId: string }>();
   const { user } = useAuth();
