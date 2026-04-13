@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
+import { ClickableName } from '@/components/ClickableName';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -75,7 +76,7 @@ export default function ConversationThread() {
         <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center font-display font-bold text-sm text-muted-foreground">
           {otherProfile?.first_name?.[0] || '?'}
         </div>
-        <p className="font-medium">{otherProfile?.first_name} {otherProfile?.last_name}</p>
+        <p className="font-medium"><ClickableName userId={otherId || ''}>{otherProfile?.first_name} {otherProfile?.last_name}</ClickableName></p>
       </div>
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.map((msg: any) => {

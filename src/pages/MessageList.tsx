@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ClientNav } from '@/components/ClientNav';
 import { ProviderNav } from '@/components/ProviderNav';
 import { MessageCircle } from 'lucide-react';
+import { ClickableName } from '@/components/ClickableName';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -73,7 +74,7 @@ export default function MessageList() {
                       {other?.first_name?.[0] || '?'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">{other?.first_name} {other?.last_name}</p>
+                      <p className="font-medium text-sm"><ClickableName userId={otherId}>{other?.first_name} {other?.last_name}</ClickableName></p>
                       <p className="text-xs text-muted-foreground truncate">{lastMsg?.text || 'Start a conversation'}</p>
                     </div>
                   </div>
