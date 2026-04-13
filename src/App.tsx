@@ -12,6 +12,7 @@ import ClientHome from "./pages/ClientHome";
 import ProviderListing from "./pages/ProviderListing";
 import ProviderProfileView from "./pages/ProviderProfileView";
 import CreateRequest from "./pages/CreateRequest";
+import PlanMyEvent from "./pages/PlanMyEvent";
 import RequestSent from "./pages/RequestSent";
 import MyRequests from "./pages/MyRequests";
 import RequestDetail from "./pages/RequestDetail";
@@ -55,6 +56,7 @@ const AppRoutes = () => (
     <Route path="/client/category/:category" element={<RequireAuth><ProviderListing /></RequireAuth>} />
     <Route path="/client/provider/:profileId" element={<RequireAuth><ProviderProfileView /></RequireAuth>} />
     <Route path="/client/request/:profileId" element={<RequireAuth><CreateRequest /></RequireAuth>} />
+    <Route path="/client/plan-event" element={<RequireAuth><PlanMyEvent /></RequireAuth>} />
     <Route path="/client/request-sent" element={<RequireAuth><RequestSent /></RequireAuth>} />
     <Route path="/client/requests" element={<RequireAuth><MyRequests /></RequireAuth>} />
     <Route path="/client/requests/:requestId" element={<RequireAuth><RequestDetail /></RequireAuth>} />

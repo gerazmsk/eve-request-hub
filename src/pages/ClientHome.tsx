@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { Search, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { CATEGORIES } from '@/types';
 import { ClientNav } from '@/components/ClientNav';
@@ -24,6 +25,13 @@ export default function ClientHome() {
             Hello {profile?.first_name || 'there'} 👋
           </h1>
         </div>
+        <Button
+          onClick={() => navigate('/client/plan-event')}
+          className="w-full h-12 rounded-xl text-base gap-2"
+        >
+          <Sparkles className="h-5 w-5" />
+          Plan My Event
+        </Button>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search services..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10 rounded-xl h-11" />
