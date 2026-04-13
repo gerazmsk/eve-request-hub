@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Star, MapPin, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ export default function ProviderProfileView() {
   const { profileId } = useParams<{ profileId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   const { data: profile } = useQuery({
     queryKey: ['provider-profile', profileId],
@@ -111,8 +113,13 @@ export default function ProviderProfileView() {
         </div>
         <div>
           <h2 className="font-display text-lg font-semibold mb-2">Availability</h2>
-          <div className="rounded-xl border bg-card p-4 flex justify-center">
-            <Calendar mode="single" className="p-3 pointer-events-auto" />
+          <div className="rounded-xl border bg-card p-2 sm:p-4 overflow-hidden">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              className="p-0 sm:p-3 pointer-events-auto w-full [&_.rdp-months]:w-full [&_.rdp-month]:w-full [&_.rdp-table]:w-full [&_.rdp-head_row]:flex [&_.rdp-head_row]:justify-around [&_.rdp-row]:flex [&_.rdp-row]:justify-around [&_.rdp-cell]:flex-1 [&_.rdp-cell]:text-center [&_.rdp-day]:mx-auto"
+            />
           </div>
         </div>
       </div>

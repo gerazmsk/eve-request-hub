@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export default function CreateRequest() {
   const { profileId } = useParams<{ profileId: string }>();
@@ -19,7 +20,7 @@ export default function CreateRequest() {
     queryFn: async () => {
       const { data } = await supabase
         .from('provider_profiles')
-        .select('*, profiles!provider_profiles_user_id_fkey(first_name, last_name)')
+        .select('*, profiles!provider_profiles_profile_fkey(first_name, last_name)')
         .eq('id', profileId || '')
         .single();
       return data;
@@ -37,7 +38,7 @@ export default function CreateRequest() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await supabase.from('service_requests').insert({
+    const { error } = await supabase.from('service_requests').insert({
       client_id: user.id,
       provider_id: profile.user_id,
       category: profile.category,
@@ -49,6 +50,11 @@ export default function CreateRequest() {
       notes: form.notes,
     });
     setLoading(false);
+    if (error) {
+      toast.error('Failed to send request', { description: error.message });
+      return;
+    }
+    toast.success('Request sent successfully!');
     navigate('/client/request-sent');
   };
 
