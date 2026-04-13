@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format, parseISO, isSameDay } from 'date-fns';
 import { Plus, Trash2 } from 'lucide-react';
+import { ClickableName } from '@/components/ClickableName';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { ProviderEventStatus } from '@/types';
@@ -166,7 +167,7 @@ export default function ProviderDashboard() {
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <p className="font-semibold">{req.event_type}</p>
-                        <p className="text-sm text-muted-foreground">{client?.first_name} {client?.last_name}</p>
+                        <p className="text-sm text-muted-foreground"><ClickableName userId={req.client_id}>{client?.first_name} {client?.last_name}</ClickableName></p>
                       </div>
                       <StatusBadge status={req.status} />
                     </div>

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { ClientNav } from '@/components/ClientNav';
 import { StatusBadge } from '@/components/StatusBadge';
+import { ClickableName } from '@/components/ClickableName';
 import { CATEGORIES } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,7 +53,7 @@ export default function MyRequests() {
                 <button key={req.id} onClick={() => navigate(`/client/requests/${req.id}`)} className="w-full text-left rounded-xl border bg-card p-4 hover:shadow-sm transition-shadow">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <p className="font-semibold">{(pp as any)?.profiles?.first_name} {(pp as any)?.profiles?.last_name}</p>
+                      <p className="font-semibold"><ClickableName userId={req.provider_id} providerProfileId={pp?.id}>{(pp as any)?.profiles?.first_name} {(pp as any)?.profiles?.last_name}</ClickableName></p>
                       <p className="text-sm text-muted-foreground">{catInfo?.icon} {pp?.title || catInfo?.label}</p>
                     </div>
                     <StatusBadge status={req.status as any} />

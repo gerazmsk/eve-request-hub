@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { ClickableName } from '@/components/ClickableName';
 
 export default function ProviderEventDetail() {
   const { requestId } = useParams<{ requestId: string }>();
@@ -79,7 +80,7 @@ export default function ProviderEventDetail() {
         </div>
         <div className="rounded-xl border bg-card p-4 space-y-2">
           <h3 className="font-semibold text-sm">Customer</h3>
-          <p className="text-sm">{client?.first_name} {client?.last_name}</p>
+          <p className="text-sm"><ClickableName userId={req.client_id}>{client?.first_name} {client?.last_name}</ClickableName></p>
         </div>
         {req.notes && (
           <div className="rounded-xl border bg-card p-4 space-y-2">

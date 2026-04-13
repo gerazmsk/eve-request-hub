@@ -22,6 +22,7 @@ import ProviderEventDetail from "./pages/ProviderEventDetail";
 import ProviderEditProfile from "./pages/ProviderEditProfile";
 import ProviderAvailability from "./pages/ProviderAvailability";
 import AccountSettings from "./pages/AccountSettings";
+import UserProfileView from "./pages/UserProfileView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -68,7 +69,9 @@ const AppRoutes = () => (
     <Route path="/provider/messages" element={<RequireAuth><MessageList /></RequireAuth>} />
     <Route path="/provider/messages/:threadId" element={<RequireAuth><ConversationThread /></RequireAuth>} />
     <Route path="/provider/profile" element={<RequireAuth><ProviderEditProfile /></RequireAuth>} />
-    
+
+    {/* Shared */}
+    <Route path="/profile/:userId" element={<RequireAuth><UserProfileView /></RequireAuth>} />
 
     <Route path="*" element={<NotFound />} />
   </Routes>
