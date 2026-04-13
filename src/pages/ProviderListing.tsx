@@ -20,7 +20,7 @@ export default function ProviderListing() {
     queryFn: async () => {
       const { data: profiles } = await supabase
         .from('provider_profiles')
-        .select('*, profiles!provider_profiles_user_id_fkey(first_name, last_name)')
+        .select('*, profiles!provider_profiles_profile_fkey(first_name, last_name)')
         .eq('category', category || '');
       return (profiles || []).map((p: any) => ({
         ...p,
@@ -59,8 +59,12 @@ export default function ProviderListing() {
                 className="w-full text-left rounded-xl border bg-card p-4 hover:shadow-md transition-shadow"
               >
                 <div className="flex gap-4">
-                  <div className="h-16 w-16 rounded-xl bg-secondary flex items-center justify-center text-2xl font-display font-bold text-muted-foreground shrink-0">
-                    {p.firstName[0] || '?'}
+                  <div className="h-16 w-16 rounded-xl bg-secondary flex items-center justify-center text-2xl font-display font-bold text-muted-foreground shrink-0 overflow-hidden">
+                    {p.profile_image ? (
+                      <img src={p.profile_image} alt={p.firstName} className="h-full w-full object-cover" />
+                    ) : (
+                      p.firstName[0] || '?'
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">

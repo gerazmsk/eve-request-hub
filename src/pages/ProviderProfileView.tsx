@@ -17,7 +17,7 @@ export default function ProviderProfileView() {
     queryFn: async () => {
       const { data } = await supabase
         .from('provider_profiles')
-        .select('*, profiles!provider_profiles_user_id_fkey(first_name, last_name)')
+        .select('*, profiles!provider_profiles_profile_fkey(first_name, last_name)')
         .eq('id', profileId || '')
         .single();
       return data;
@@ -55,15 +55,19 @@ export default function ProviderProfileView() {
 
   return (
     <div className="min-h-screen pb-24">
-      <div className="relative h-48 bg-gradient-to-br from-primary/20 to-accent/20">
+      <div className="relative h-48 bg-gradient-to-br from-primary/20 to-accent/20 bg-cover bg-center" style={profile.cover_image ? { backgroundImage: `url(${profile.cover_image})` } : undefined}>
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="absolute top-4 left-4 bg-card/80 backdrop-blur-sm rounded-full">
           <ArrowLeft className="h-5 w-5" />
         </Button>
       </div>
       <div className="px-5 -mt-12 space-y-5">
         <div className="flex items-end gap-4">
-          <div className="h-24 w-24 rounded-2xl bg-card border-4 border-background flex items-center justify-center text-3xl font-display font-bold text-primary shadow-lg">
-            {firstName[0] || '?'}
+          <div className="h-24 w-24 rounded-2xl bg-card border-4 border-background flex items-center justify-center text-3xl font-display font-bold text-primary shadow-lg overflow-hidden">
+            {profile.profile_image ? (
+              <img src={profile.profile_image} alt={firstName} className="h-full w-full object-cover" />
+            ) : (
+              firstName[0] || '?'
+            )}
           </div>
           <div className="pb-1">
             <h1 className="font-display text-2xl font-bold">{firstName} {lastName}</h1>
