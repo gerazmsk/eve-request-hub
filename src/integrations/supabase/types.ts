@@ -14,6 +14,115 @@ export type Database = {
   }
   public: {
     Tables: {
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          id: string
+          provider_id: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string
+          id?: string
+          provider_id: string
+          type?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          id?: string
+          provider_id?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      group_chat_members: {
+        Row: {
+          group_chat_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          group_chat_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          group_chat_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_chat_members_group_chat_id_fkey"
+            columns: ["group_chat_id"]
+            isOneToOne: false
+            referencedRelation: "group_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_chats: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      group_messages: {
+        Row: {
+          created_at: string
+          group_chat_id: string
+          id: string
+          sender_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          group_chat_id: string
+          id?: string
+          sender_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          group_chat_id?: string
+          id?: string
+          sender_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_messages_group_chat_id_fkey"
+            columns: ["group_chat_id"]
+            isOneToOne: false
+            referencedRelation: "group_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_threads: {
         Row: {
           client_id: string
@@ -134,6 +243,27 @@ export type Database = {
           id?: string
           provider_id?: string
           time_slots?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      provider_credits: {
+        Row: {
+          balance: number
+          id: string
+          provider_id: string
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          id?: string
+          provider_id: string
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          id?: string
+          provider_id?: string
           updated_at?: string
         }
         Relationships: []

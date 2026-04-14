@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/useAuth';
 import { ProviderNav } from '@/components/ProviderNav';
+import { GalleryLightbox } from '@/components/GalleryLightbox';
 import { CATEGORIES } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -36,6 +37,8 @@ export default function ProviderEditProfile() {
   const [uploading, setUploading] = useState(false);
   const [uploadingProfile, setUploadingProfile] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
     if (profile) {
@@ -187,7 +190,7 @@ export default function ProviderEditProfile() {
             <Label>Gallery</Label>
             <div className="grid grid-cols-3 gap-2 mt-2">
               {(profile.gallery || []).map((url: string, i: number) => (
-                <img key={i} src={url} alt="" className="aspect-square rounded-lg object-cover" />
+                <img key={i} src={url} alt="" className="aspect-square rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity" onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }} />
               ))}
               <button
                 type="button"
@@ -209,6 +212,7 @@ export default function ProviderEditProfile() {
           </Button>
         </div>
       </div>
+      <GalleryLightbox images={profile.gallery || []} initialIndex={lightboxIndex} open={lightboxOpen} onOpenChange={setLightboxOpen} />
       <ProviderNav />
     </div>
   );
