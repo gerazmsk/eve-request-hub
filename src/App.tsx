@@ -25,6 +25,8 @@ import ProviderAvailability from "./pages/ProviderAvailability";
 import ProviderLeads from "./pages/ProviderLeads";
 import AccountSettings from "./pages/AccountSettings";
 import UserProfileView from "./pages/UserProfileView";
+import GroupChatThread from "./pages/GroupChatThread";
+import CreateGroupChat from "./pages/CreateGroupChat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,6 +65,8 @@ const AppRoutes = () => (
     <Route path="/client/requests/:requestId" element={<RequireAuth><RequestDetail /></RequireAuth>} />
     <Route path="/client/messages" element={<RequireAuth><MessageList /></RequireAuth>} />
     <Route path="/client/messages/:threadId" element={<RequireAuth><ConversationThread /></RequireAuth>} />
+    <Route path="/client/group/:groupId" element={<RequireAuth><GroupChatThread /></RequireAuth>} />
+    <Route path="/client/new-group" element={<RequireAuth><CreateGroupChat /></RequireAuth>} />
     <Route path="/client/account" element={<RequireAuth><AccountSettings /></RequireAuth>} />
 
     {/* Provider routes */}
@@ -72,6 +76,8 @@ const AppRoutes = () => (
     <Route path="/provider/availability" element={<RequireAuth><ProviderAvailability /></RequireAuth>} />
     <Route path="/provider/messages" element={<RequireAuth><MessageList /></RequireAuth>} />
     <Route path="/provider/messages/:threadId" element={<RequireAuth><ConversationThread /></RequireAuth>} />
+    <Route path="/provider/group/:groupId" element={<RequireAuth><GroupChatThread /></RequireAuth>} />
+    <Route path="/provider/new-group" element={<RequireAuth><CreateGroupChat /></RequireAuth>} />
     <Route path="/provider/profile" element={<RequireAuth><ProviderEditProfile /></RequireAuth>} />
 
     {/* Shared */}
