@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { useAuth } from '@/hooks/useAuth';
 import { ClientNav } from '@/components/ClientNav';
+import { GalleryLightbox } from '@/components/GalleryLightbox';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { parseISO, isSameDay, format } from 'date-fns';
@@ -70,6 +71,8 @@ export default function ProviderProfileView() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const { data: profile } = useQuery({
     queryKey: ['provider-profile', profileId],
@@ -89,10 +92,10 @@ export default function ProviderProfileView() {
 
   const firstName = (profile as any).profiles?.first_name || '';
   const lastName = (profile as any).profiles?.last_name || '';
+  const galleryImages = profile.gallery || [];
 
   const handleTextMe = async () => {
     if (!user) return;
-    // Find or create thread
     const { data: existing } = await supabase
       .from('message_threads')
       .select('id')
@@ -110,6 +113,11 @@ export default function ProviderProfileView() {
         .single();
       if (newThread) navigate(`/client/messages/${newThread.id}`);
     }
+  };
+
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
   };
 
   return (
@@ -150,9 +158,15 @@ export default function ProviderProfileView() {
         <div>
           <h2 className="font-display text-lg font-semibold mb-2">Gallery</h2>
           <div className="grid grid-cols-3 gap-2">
-            {(profile.gallery || []).length > 0
-              ? profile.gallery.map((url: string, i: number) => (
-                  <img key={i} src={url} alt="" className="aspect-square rounded-lg object-cover" />
+            {galleryImages.length > 0
+              ? galleryImages.map((url: string, i: number) => (
+                  <img
+                    key={i}
+                    src={url}
+                    alt=""
+                    className="aspect-square rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => openLightbox(i)}
+                  />
                 ))
               : [1, 2, 3].map(i => <div key={i} className="aspect-square rounded-lg bg-secondary" />)
             }
@@ -180,6 +194,12 @@ export default function ProviderProfileView() {
           </Button>
         </div>
       </div>
+      <GalleryLightbox
+        images={galleryImages}
+        initialIndex={lightboxIndex}
+        open={lightboxOpen}
+        onOpenChange={setLightboxOpen}
+      />
       <ClientNav />
     </div>
   );

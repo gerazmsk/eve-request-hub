@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Star, MapPin, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,33 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+function locationScore(providerLocation: string, searchLocation: string): number {
+  if (!providerLocation || !searchLocation) return 0;
+  const pLoc = providerLocation.toLowerCase().trim();
+  const sLoc = searchLocation.toLowerCase().trim();
+  if (pLoc === sLoc) return 100;
+  // Check if search location is contained in provider location (city match)
+  if (pLoc.includes(sLoc) || sLoc.includes(pLoc)) return 80;
+  // Check ZIP code match (extract digits)
+  const pZip = pLoc.match(/\d{5}/)?.[0];
+  const sZip = sLoc.match(/\d{5}/)?.[0];
+  if (pZip && sZip) {
+    if (pZip === sZip) return 90;
+    // Same area code (first 3 digits)
+    if (pZip.slice(0, 3) === sZip.slice(0, 3)) return 60;
+  }
+  // Check city name parts
+  const sParts = sLoc.split(/[\s,]+/).filter(p => p.length > 2);
+  for (const part of sParts) {
+    if (pLoc.includes(part)) return 50;
+  }
+  return 0;
+}
+
 export default function ProviderListing() {
   const { category } = useParams<{ category: string }>();
+  const [searchParams] = useSearchParams();
+  const eventLocation = searchParams.get('location') || '';
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
 
@@ -35,6 +60,16 @@ export default function ProviderListing() {
     (p.tags || []).some((t: string) => t.toLowerCase().includes(search.toLowerCase()))
   );
 
+  // Sort by location relevance if we have a location context
+  const searchLoc = search || eventLocation;
+  const sorted = searchLoc
+    ? [...filtered].sort((a: any, b: any) => {
+        const scoreA = locationScore(a.location, searchLoc);
+        const scoreB = locationScore(b.location, searchLoc);
+        return scoreB - scoreA;
+      })
+    : filtered;
+
   return (
     <div className="min-h-screen pb-20">
       <div className="px-5 pt-6 pb-6 space-y-4">
@@ -46,13 +81,13 @@ export default function ProviderListing() {
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search providers..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10 rounded-xl h-11" />
+          <Input placeholder="Search by name, tag, or location..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10 rounded-xl h-11" />
         </div>
-        {filtered.length === 0 ? (
+        {sorted.length === 0 ? (
           <p className="text-center text-muted-foreground py-12">No providers found in this category yet.</p>
         ) : (
           <div className="space-y-3">
-            {filtered.map((p: any) => (
+            {sorted.map((p: any) => (
               <button
                 key={p.id}
                 onClick={() => navigate(`/client/provider/${p.id}`)}
