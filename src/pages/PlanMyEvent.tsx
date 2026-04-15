@@ -28,6 +28,7 @@ export default function PlanMyEvent() {
   const [eventDate, setEventDate] = useState<Date | undefined>();
   const [location, setLocation] = useState('');
   const [budget, setBudget] = useState('');
+  const [hours, setHours] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -70,6 +71,7 @@ export default function PlanMyEvent() {
       event_time: '10:00',
       location,
       budget,
+      hours: hours ? parseInt(hours) : null,
       notes: `Plan My Event request — Categories: ${selectedCategories.map(c => CATEGORIES.find(cat => cat.key === c)?.label || c).join(', ')}`,
     }));
 
@@ -173,6 +175,18 @@ export default function PlanMyEvent() {
               ))}
             </div>
           </div>
+
+          <div className="space-y-2">
+            <Label className="text-base font-semibold">Number of Hours</Label>
+            <Input
+              type="number"
+              min="1"
+              value={hours}
+              onChange={e => setHours(e.target.value)}
+              placeholder="e.g. 4"
+              className="rounded-xl h-12 text-base"
+            />
+          </div>
         </div>
       )}
 
@@ -228,6 +242,12 @@ export default function PlanMyEvent() {
               <p className="text-xs text-muted-foreground">Budget</p>
               <p className="font-medium">{budget}</p>
             </div>
+            {hours && (
+              <div className="p-4">
+                <p className="text-xs text-muted-foreground">Hours</p>
+                <p className="font-medium">{hours} hour{parseInt(hours) !== 1 ? 's' : ''}</p>
+              </div>
+            )}
             <div className="p-4">
               <p className="text-xs text-muted-foreground">Looking for</p>
               <div className="flex flex-wrap gap-2 mt-1">
