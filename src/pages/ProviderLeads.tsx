@@ -345,6 +345,7 @@ export default function ProviderLeads() {
                       <div><span className="font-medium text-foreground">Time:</span> {req.event_time}</div>
                       <div><span className="font-medium text-foreground">Location:</span> {req.location || '—'}</div>
                       <div><span className="font-medium text-foreground">Budget:</span> {req.budget || '—'}</div>
+                      {(req as any).hours && <div><span className="font-medium text-foreground">Hours:</span> {(req as any).hours}</div>}
                       {req.category && (
                         <div className="col-span-2"><span className="font-medium text-foreground">Category:</span> {getCategoryLabel(req.category)}</div>
                       )}

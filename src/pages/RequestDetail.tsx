@@ -72,6 +72,7 @@ export default function RequestDetail() {
             <div className="flex items-center gap-2 text-muted-foreground"><Clock className="h-4 w-4" /> {req.event_time}</div>
             <div className="flex items-center gap-2 text-muted-foreground"><MapPin className="h-4 w-4" /> {req.location}</div>
             {req.budget && <p className="text-muted-foreground">Budget: {req.budget}</p>}
+            {(req as any).hours && <p className="text-muted-foreground">Hours: {(req as any).hours}</p>}
           </div>
         </div>
         <div className="rounded-xl border bg-card p-4 space-y-2">
