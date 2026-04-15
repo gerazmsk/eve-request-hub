@@ -59,11 +59,22 @@ export default function ProviderDashboard() {
 
   if (!user) return null;
 
+  // Merge provider_events and confirmed/pending service_requests for calendar
+  const confirmedRequests = requests.filter((r: any) => r.status === 'confirmed' || r.status === 'pending');
+
   const eventsForDate = selectedDate
     ? myEvents.filter((e: any) => isSameDay(parseISO(e.date), selectedDate))
     : [];
 
-  const datesWithEvents = myEvents.map((e: any) => parseISO(e.date));
+  const requestsForDate = selectedDate
+    ? confirmedRequests.filter((r: any) => isSameDay(parseISO(r.event_date), selectedDate))
+    : [];
+
+  const allDatesWithActivity = [
+    ...myEvents.map((e: any) => parseISO(e.date)),
+    ...confirmedRequests.map((r: any) => parseISO(r.event_date)),
+  ];
+  const datesWithEvents = allDatesWithActivity;
 
   const openNewEvent = (date?: Date) => {
     const d = date || selectedDate || new Date();
