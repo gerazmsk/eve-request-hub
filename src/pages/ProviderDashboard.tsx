@@ -59,11 +59,22 @@ export default function ProviderDashboard() {
 
   if (!user) return null;
 
+  // Merge provider_events and confirmed/pending service_requests for calendar
+  const confirmedRequests = requests.filter((r: any) => r.status === 'confirmed' || r.status === 'pending');
+
   const eventsForDate = selectedDate
     ? myEvents.filter((e: any) => isSameDay(parseISO(e.date), selectedDate))
     : [];
 
-  const datesWithEvents = myEvents.map((e: any) => parseISO(e.date));
+  const requestsForDate = selectedDate
+    ? confirmedRequests.filter((r: any) => isSameDay(parseISO(r.event_date), selectedDate))
+    : [];
+
+  const allDatesWithActivity = [
+    ...myEvents.map((e: any) => parseISO(e.date)),
+    ...confirmedRequests.map((r: any) => parseISO(r.event_date)),
+  ];
+  const datesWithEvents = allDatesWithActivity;
 
   const openNewEvent = (date?: Date) => {
     const d = date || selectedDate || new Date();
@@ -138,19 +149,34 @@ export default function ProviderDashboard() {
               <h2 className="font-semibold text-sm">{format(selectedDate, 'MMMM d, yyyy')}</h2>
               <Button size="sm" variant="outline" className="gap-1" onClick={() => openNewEvent()}><Plus className="h-4 w-4" /> Add Event</Button>
             </div>
-            {eventsForDate.length === 0 ? (
+            {eventsForDate.length === 0 && requestsForDate.length === 0 ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No events on this date.</p>
             ) : (
-              eventsForDate.map((ev: any) => (
-                <button key={ev.id} onClick={() => openEditEvent(ev)} className="w-full text-left rounded-xl border bg-card p-4 hover:shadow-sm transition-shadow">
-                  <div className="flex justify-between items-start mb-1">
-                    <p className="font-semibold">{ev.client_name}</p>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${statusColor(ev.status)}`}>{ev.status}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{ev.address}</p>
-                  <p className="text-sm font-medium mt-1">{ev.job_cost}</p>
-                </button>
-              ))
+              <>
+                {eventsForDate.map((ev: any) => (
+                  <button key={ev.id} onClick={() => openEditEvent(ev)} className="w-full text-left rounded-xl border bg-card p-4 hover:shadow-sm transition-shadow">
+                    <div className="flex justify-between items-start mb-1">
+                      <p className="font-semibold">{ev.client_name}</p>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${statusColor(ev.status)}`}>{ev.status}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{ev.address}</p>
+                    <p className="text-sm font-medium mt-1">{ev.job_cost}</p>
+                  </button>
+                ))}
+                {requestsForDate.map((req: any) => {
+                  const client = clientProfiles.find((p: any) => p.user_id === req.client_id);
+                  return (
+                    <button key={req.id} onClick={() => navigate(`/provider/events/${req.id}`)} className="w-full text-left rounded-xl border bg-card p-4 hover:shadow-sm transition-shadow">
+                      <div className="flex justify-between items-start mb-1">
+                        <p className="font-semibold">{req.event_type}</p>
+                        <StatusBadge status={req.status} />
+                      </div>
+                      <p className="text-sm text-muted-foreground">{client?.first_name} {client?.last_name}</p>
+                      <p className="text-sm text-muted-foreground">{req.location}</p>
+                    </button>
+                  );
+                })}
+              </>
             )}
           </div>
         )}
