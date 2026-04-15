@@ -24,9 +24,37 @@ export function useRealtimeNotifications() {
             setUnreadRequests(prev => prev + 1);
             toast.info('New request received', { description: `${row.event_type} on ${row.event_date}` });
             queryClient.invalidateQueries({ queryKey: ['provider-requests'] });
+            queryClient.invalidateQueries({ queryKey: ['open-requests'] });
           }
           if (row.client_id === user.id) {
             queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+            queryClient.invalidateQueries({ queryKey: ['client-requests'] });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'service_requests' },
+        (payload) => {
+          const row = payload.new as any;
+          const oldRow = payload.old as any;
+          // Notify client when provider updates status
+          if (row.client_id === user.id && row.status !== oldRow.status) {
+            if (row.status === 'confirmed') {
+              toast.success('Your request was accepted! 🎉', { description: `${row.event_type} on ${row.event_date}` });
+            } else if (row.status === 'declined') {
+              toast.error('Your request was declined', { description: `${row.event_type} on ${row.event_date}` });
+            } else {
+              toast.info(`Request status updated to ${row.status}`, { description: `${row.event_type}` });
+            }
+            queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+            queryClient.invalidateQueries({ queryKey: ['client-requests'] });
+            queryClient.invalidateQueries({ queryKey: ['request'] });
+          }
+          // Notify provider of status changes
+          if (row.provider_id === user.id && row.status !== oldRow.status) {
+            queryClient.invalidateQueries({ queryKey: ['provider-requests'] });
+            queryClient.invalidateQueries({ queryKey: ['open-requests'] });
           }
         }
       )
@@ -39,6 +67,7 @@ export function useRealtimeNotifications() {
             setUnreadMessages(prev => prev + 1);
             toast.info('New message received');
             queryClient.invalidateQueries({ queryKey: ['message-threads'] });
+            queryClient.invalidateQueries({ queryKey: ['messages'] });
           }
         }
       )

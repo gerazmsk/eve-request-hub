@@ -59,6 +59,7 @@ export default function CreateRequest() {
   const [selectedTime, setSelectedTime] = useState('');
   const [location, setLocation] = useState('');
   const [budget, setBudget] = useState('');
+  const [hours, setHours] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -97,6 +98,7 @@ export default function CreateRequest() {
       event_time: selectedTime,
       location,
       budget,
+      hours: hours ? parseInt(hours) : null,
       notes,
     });
     setLoading(false);
@@ -208,6 +210,7 @@ export default function CreateRequest() {
 
         <div className="space-y-1.5"><Label>Location</Label><Input required value={location} onChange={e => setLocation(e.target.value)} placeholder="Event location" className="rounded-xl" /></div>
         <div className="space-y-1.5"><Label>Budget (optional)</Label><Input value={budget} onChange={e => setBudget(e.target.value)} placeholder="e.g. $1,500" className="rounded-xl" /></div>
+        <div className="space-y-1.5"><Label>Number of Hours</Label><Input type="number" min="1" value={hours} onChange={e => setHours(e.target.value)} placeholder="e.g. 4" className="rounded-xl" /></div>
         <div className="space-y-1.5"><Label>Notes</Label><Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any details for the provider..." className="rounded-xl min-h-[100px]" /></div>
         <Button type="submit" className="w-full h-12 rounded-xl text-base" disabled={loading || !selectedDate || !selectedTime}>
           {loading ? 'Sending...' : 'Send Request'}

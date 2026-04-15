@@ -381,6 +381,7 @@ export type Database = {
           event_date: string
           event_time: string
           event_type: string
+          hours: number | null
           id: string
           location: string
           notes: string
@@ -395,6 +396,7 @@ export type Database = {
           event_date: string
           event_time: string
           event_type: string
+          hours?: number | null
           id?: string
           location?: string
           notes?: string
@@ -409,6 +411,7 @@ export type Database = {
           event_date?: string
           event_time?: string
           event_type?: string
+          hours?: number | null
           id?: string
           location?: string
           notes?: string

@@ -168,11 +168,16 @@ export default function ProviderLeads() {
       text: responseText.trim(),
     });
 
+    // Update request status to confirmed
+    await supabase.from('service_requests').update({ status: 'confirmed' }).eq('id', selectedRequest.id);
+
     setSending(false);
     setSelectedRequest(null);
     setResponseText('');
-    toast.success('Response sent to client!');
+    toast.success('Request accepted! Response sent to client.');
     queryClient.invalidateQueries({ queryKey: ['threads'] });
+    queryClient.invalidateQueries({ queryKey: ['open-requests'] });
+    queryClient.invalidateQueries({ queryKey: ['provider-requests'] });
   };
 
   const getFirstMsg = (threadId: string) => firstMessages.find((m: any) => m.thread_id === threadId);
@@ -340,6 +345,7 @@ export default function ProviderLeads() {
                       <div><span className="font-medium text-foreground">Time:</span> {req.event_time}</div>
                       <div><span className="font-medium text-foreground">Location:</span> {req.location || '—'}</div>
                       <div><span className="font-medium text-foreground">Budget:</span> {req.budget || '—'}</div>
+                      {(req as any).hours && <div><span className="font-medium text-foreground">Hours:</span> {(req as any).hours}</div>}
                       {req.category && (
                         <div className="col-span-2"><span className="font-medium text-foreground">Category:</span> {getCategoryLabel(req.category)}</div>
                       )}
@@ -351,7 +357,7 @@ export default function ProviderLeads() {
                       {unlocked ? (
                         <>
                           <Button size="sm" className="flex-1 rounded-xl gap-1.5" onClick={() => { setSelectedRequest(req); setResponseText(''); }}>
-                            <Send className="h-3.5 w-3.5" />Send Offer
+                            <Send className="h-3.5 w-3.5" />Accept Request
                           </Button>
                           <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={() => navigate(`/provider/events/${req.id}`)}>
                             <Eye className="h-3.5 w-3.5" />Details
@@ -372,11 +378,11 @@ export default function ProviderLeads() {
         </Tabs>
       </div>
 
-      {/* Send Offer Dialog */}
+      {/* Accept Request Dialog */}
       <Dialog open={!!selectedRequest} onOpenChange={open => !open && setSelectedRequest(null)}>
         <DialogContent className="max-w-[380px] rounded-xl">
           <DialogHeader>
-            <DialogTitle>Send Offer</DialogTitle>
+            <DialogTitle>Accept Request</DialogTitle>
             <DialogDescription>
               Respond to {selectedRequest?.event_type} request.
             </DialogDescription>
@@ -394,7 +400,7 @@ export default function ProviderLeads() {
               className="w-full min-h-[120px] rounded-xl border bg-background p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <Button className="w-full rounded-xl" disabled={!responseText.trim() || sending} onClick={handleRespondToRequest}>
-              {sending ? 'Sending...' : 'Send Offer'}
+              {sending ? 'Sending...' : 'Accept Request'}
             </Button>
           </div>
         </DialogContent>
