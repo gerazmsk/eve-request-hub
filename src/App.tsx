@@ -41,10 +41,13 @@ function AuthRedirect({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { user, isReady } = useAuth();
+function RequireAuth({ children, role }: { children: React.ReactNode; role?: 'client' | 'provider' }) {
+  const { user, profile, isReady } = useAuth();
   if (!isReady) return <div className="flex min-h-screen items-center justify-center"><p>Loading...</p></div>;
   if (!user) return <Navigate to="/" replace />;
+  if (role && profile && profile.role !== role) {
+    return <Navigate to={profile.role === 'client' ? '/client' : '/provider'} replace />;
+  }
   return <>{children}</>;
 }
 
