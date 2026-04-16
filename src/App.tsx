@@ -79,6 +79,7 @@ const AppRoutes = () => (
     <Route path="/provider/group/:groupId" element={<RequireAuth><GroupChatThread /></RequireAuth>} />
     <Route path="/provider/new-group" element={<RequireAuth><CreateGroupChat /></RequireAuth>} />
     <Route path="/provider/profile" element={<RequireAuth><ProviderEditProfile /></RequireAuth>} />
+    <Route path="/provider/account" element={<RequireAuth><AccountSettings /></RequireAuth>} />
 
     {/* Shared */}
     <Route path="/profile/:userId" element={<RequireAuth><UserProfileView /></RequireAuth>} />
