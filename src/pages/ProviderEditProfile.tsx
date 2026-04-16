@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/useAuth';
 import { ProviderNav } from '@/components/ProviderNav';
 import { GalleryLightbox } from '@/components/GalleryLightbox';
+import { ReviewsList } from '@/components/ReviewsList';
 import { CATEGORIES } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -186,6 +187,14 @@ export default function ProviderEditProfile() {
             </div>
             <p className="text-sm text-muted-foreground capitalize">{profile.category} · {completedProjects} Projects</p>
           </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="rounded-xl border bg-card p-4 text-center">
+            <p className="text-2xl font-bold text-primary">{completedProjects}</p>
+            <p className="text-xs text-muted-foreground">Projects</p>
+          </div>
+          <ReviewsList userId={user.id} />
         </div>
 
         <form onSubmit={handleSave} className="space-y-4">
