@@ -182,7 +182,7 @@ export default function ProviderEditProfile() {
           <div className="pb-1">
             <div className="flex items-center gap-1.5">
               <h1 className="font-display text-xl font-bold">{authProfile.first_name} {authProfile.last_name}</h1>
-              {(authProfile as any).is_verified && <BadgeCheck className="h-5 w-5 text-primary fill-primary/20" />}
+              {authProfile.is_verified && <BadgeCheck className="h-5 w-5 text-primary fill-primary/20" />}
             </div>
             <p className="text-sm text-muted-foreground capitalize">{profile.category} · {completedProjects} Projects</p>
           </div>
