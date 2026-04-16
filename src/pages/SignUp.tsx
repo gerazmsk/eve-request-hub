@@ -52,7 +52,8 @@ export default function SignUp() {
       toast({ title: 'Sign up failed', description: error.message, variant: 'destructive' });
     } else {
       sessionStorage.removeItem('eve-selected-role');
-      setShowConfirmation(true);
+      // Auto-confirm is enabled, user is logged in immediately
+      navigate(selectedRole === 'client' ? '/client' : '/provider');
     }
   };
 
