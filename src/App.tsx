@@ -41,10 +41,13 @@ function AuthRedirect({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { user, isReady } = useAuth();
+function RequireAuth({ children, role }: { children: React.ReactNode; role?: 'client' | 'provider' }) {
+  const { user, profile, isReady } = useAuth();
   if (!isReady) return <div className="flex min-h-screen items-center justify-center"><p>Loading...</p></div>;
   if (!user) return <Navigate to="/" replace />;
+  if (role && profile && profile.role !== role) {
+    return <Navigate to={profile.role === 'client' ? '/client' : '/provider'} replace />;
+  }
   return <>{children}</>;
 }
 
@@ -56,32 +59,32 @@ const AppRoutes = () => (
     <Route path="/login" element={<AuthRedirect><LogIn /></AuthRedirect>} />
 
     {/* Client routes */}
-    <Route path="/client" element={<RequireAuth><ClientHome /></RequireAuth>} />
-    <Route path="/client/category/:category" element={<RequireAuth><ProviderListing /></RequireAuth>} />
-    <Route path="/client/provider/:profileId" element={<RequireAuth><ProviderProfileView /></RequireAuth>} />
-    <Route path="/client/request/:profileId" element={<RequireAuth><CreateRequest /></RequireAuth>} />
-    <Route path="/client/plan-event" element={<RequireAuth><PlanMyEvent /></RequireAuth>} />
-    <Route path="/client/request-sent" element={<RequireAuth><RequestSent /></RequireAuth>} />
-    <Route path="/client/requests" element={<RequireAuth><MyRequests /></RequireAuth>} />
-    <Route path="/client/requests/:requestId" element={<RequireAuth><RequestDetail /></RequireAuth>} />
-    <Route path="/client/messages" element={<RequireAuth><MessageList /></RequireAuth>} />
-    <Route path="/client/messages/:threadId" element={<RequireAuth><ConversationThread /></RequireAuth>} />
-    <Route path="/client/group/:groupId" element={<RequireAuth><GroupChatThread /></RequireAuth>} />
-    <Route path="/client/new-group" element={<RequireAuth><CreateGroupChat /></RequireAuth>} />
-    <Route path="/client/profile" element={<RequireAuth><ClientProfile /></RequireAuth>} />
-    <Route path="/client/account" element={<RequireAuth><AccountSettings /></RequireAuth>} />
+    <Route path="/client" element={<RequireAuth role="client"><ClientHome /></RequireAuth>} />
+    <Route path="/client/category/:category" element={<RequireAuth role="client"><ProviderListing /></RequireAuth>} />
+    <Route path="/client/provider/:profileId" element={<RequireAuth role="client"><ProviderProfileView /></RequireAuth>} />
+    <Route path="/client/request/:profileId" element={<RequireAuth role="client"><CreateRequest /></RequireAuth>} />
+    <Route path="/client/plan-event" element={<RequireAuth role="client"><PlanMyEvent /></RequireAuth>} />
+    <Route path="/client/request-sent" element={<RequireAuth role="client"><RequestSent /></RequireAuth>} />
+    <Route path="/client/requests" element={<RequireAuth role="client"><MyRequests /></RequireAuth>} />
+    <Route path="/client/requests/:requestId" element={<RequireAuth role="client"><RequestDetail /></RequireAuth>} />
+    <Route path="/client/messages" element={<RequireAuth role="client"><MessageList /></RequireAuth>} />
+    <Route path="/client/messages/:threadId" element={<RequireAuth role="client"><ConversationThread /></RequireAuth>} />
+    <Route path="/client/group/:groupId" element={<RequireAuth role="client"><GroupChatThread /></RequireAuth>} />
+    <Route path="/client/new-group" element={<RequireAuth role="client"><CreateGroupChat /></RequireAuth>} />
+    <Route path="/client/profile" element={<RequireAuth role="client"><ClientProfile /></RequireAuth>} />
+    <Route path="/client/account" element={<RequireAuth role="client"><AccountSettings /></RequireAuth>} />
 
     {/* Provider routes */}
-    <Route path="/provider" element={<RequireAuth><ProviderDashboard /></RequireAuth>} />
-    <Route path="/provider/events/:requestId" element={<RequireAuth><ProviderEventDetail /></RequireAuth>} />
-    <Route path="/provider/leads" element={<RequireAuth><ProviderLeads /></RequireAuth>} />
-    <Route path="/provider/availability" element={<RequireAuth><ProviderAvailability /></RequireAuth>} />
-    <Route path="/provider/messages" element={<RequireAuth><MessageList /></RequireAuth>} />
-    <Route path="/provider/messages/:threadId" element={<RequireAuth><ConversationThread /></RequireAuth>} />
-    <Route path="/provider/group/:groupId" element={<RequireAuth><GroupChatThread /></RequireAuth>} />
-    <Route path="/provider/new-group" element={<RequireAuth><CreateGroupChat /></RequireAuth>} />
-    <Route path="/provider/profile" element={<RequireAuth><ProviderEditProfile /></RequireAuth>} />
-    <Route path="/provider/account" element={<RequireAuth><AccountSettings /></RequireAuth>} />
+    <Route path="/provider" element={<RequireAuth role="provider"><ProviderDashboard /></RequireAuth>} />
+    <Route path="/provider/events/:requestId" element={<RequireAuth role="provider"><ProviderEventDetail /></RequireAuth>} />
+    <Route path="/provider/leads" element={<RequireAuth role="provider"><ProviderLeads /></RequireAuth>} />
+    <Route path="/provider/availability" element={<RequireAuth role="provider"><ProviderAvailability /></RequireAuth>} />
+    <Route path="/provider/messages" element={<RequireAuth role="provider"><MessageList /></RequireAuth>} />
+    <Route path="/provider/messages/:threadId" element={<RequireAuth role="provider"><ConversationThread /></RequireAuth>} />
+    <Route path="/provider/group/:groupId" element={<RequireAuth role="provider"><GroupChatThread /></RequireAuth>} />
+    <Route path="/provider/new-group" element={<RequireAuth role="provider"><CreateGroupChat /></RequireAuth>} />
+    <Route path="/provider/profile" element={<RequireAuth role="provider"><ProviderEditProfile /></RequireAuth>} />
+    <Route path="/provider/account" element={<RequireAuth role="provider"><AccountSettings /></RequireAuth>} />
 
     {/* Shared */}
     <Route path="/profile/:userId" element={<RequireAuth><UserProfileView /></RequireAuth>} />
