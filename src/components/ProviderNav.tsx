@@ -1,4 +1,4 @@
-import { Calendar, MessageCircle, User, Clock, Flame } from 'lucide-react';
+import { Calendar, MessageCircle, User, Flame, Settings } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { NotificationBadge } from '@/components/NotificationBadge';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
@@ -11,6 +11,7 @@ export function ProviderNav() {
     { to: '/provider/leads', icon: Flame, label: 'Leads', badge: unreadRequests, onClear: clearUnreadRequests },
     { to: '/provider/messages', icon: MessageCircle, label: 'Messages', badge: unreadMessages, onClear: clearUnreadMessages },
     { to: '/provider/profile', icon: User, label: 'My Profile', badge: 0, onClear: undefined },
+    { to: '/provider/account', icon: Settings, label: 'Account', badge: 0, onClear: undefined },
   ];
 
   return (
