@@ -40,7 +40,7 @@ export default function ProviderEditProfile() {
         .from('service_requests')
         .select('*', { count: 'exact', head: true })
         .eq('provider_id', user!.id)
-        .eq('status', 'confirmed');
+        .in('status', ['completed', 'confirmed']);
       return count || 0;
     },
   });
