@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isReady: boolean;
-  profile: { id: string; user_id: string; role: string; first_name: string; last_name: string; phone: string } | null;
+  profile: { id: string; user_id: string; role: string; first_name: string; last_name: string; phone: string; is_verified: boolean } | null;
   signUp: (email: string, password: string, metadata: { role: string; first_name: string; last_name: string; phone: string }) => Promise<{ error: Error | null }>;
   logIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   logOut: () => Promise<void>;
