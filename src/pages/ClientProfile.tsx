@@ -43,7 +43,7 @@ export default function ClientProfile() {
             <div>
               <div className="flex items-center gap-1.5">
                 <p className="font-display text-xl font-bold">{profile.first_name} {profile.last_name}</p>
-                <BadgeCheck className="h-5 w-5 text-primary fill-primary/20" />
+                {(profile as any).is_verified && <BadgeCheck className="h-5 w-5 text-primary fill-primary/20" />}
               </div>
               <p className="text-sm text-muted-foreground">{user.email}</p>
             </div>
