@@ -3,6 +3,7 @@ import { BadgeCheck, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { ClientNav } from '@/components/ClientNav';
+import { ReviewsList } from '@/components/ReviewsList';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -55,10 +56,7 @@ export default function ClientProfile() {
             <p className="text-2xl font-bold text-primary">{completedProjects}</p>
             <p className="text-xs text-muted-foreground">Projects</p>
           </div>
-          <div className="rounded-xl border bg-card p-4 text-center">
-            <p className="text-2xl font-bold text-primary">0</p>
-            <p className="text-xs text-muted-foreground">Reviews</p>
-          </div>
+          <ReviewsList userId={user.id} />
         </div>
 
         <div className="rounded-xl border bg-card p-5 space-y-3">
