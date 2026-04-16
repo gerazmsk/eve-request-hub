@@ -27,6 +27,7 @@ import AccountSettings from "./pages/AccountSettings";
 import UserProfileView from "./pages/UserProfileView";
 import GroupChatThread from "./pages/GroupChatThread";
 import CreateGroupChat from "./pages/CreateGroupChat";
+import ClientProfile from "./pages/ClientProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ const AppRoutes = () => (
     <Route path="/client/messages/:threadId" element={<RequireAuth><ConversationThread /></RequireAuth>} />
     <Route path="/client/group/:groupId" element={<RequireAuth><GroupChatThread /></RequireAuth>} />
     <Route path="/client/new-group" element={<RequireAuth><CreateGroupChat /></RequireAuth>} />
+    <Route path="/client/profile" element={<RequireAuth><ClientProfile /></RequireAuth>} />
     <Route path="/client/account" element={<RequireAuth><AccountSettings /></RequireAuth>} />
 
     {/* Provider routes */}

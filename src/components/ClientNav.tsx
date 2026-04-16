@@ -10,7 +10,7 @@ export function ClientNav() {
     { to: '/client', icon: Home, label: 'Home', badge: 0, onClear: undefined },
     { to: '/client/requests', icon: FileText, label: 'My Requests', badge: unreadRequests, onClear: clearUnreadRequests },
     { to: '/client/messages', icon: MessageCircle, label: 'Messages', badge: unreadMessages, onClear: clearUnreadMessages },
-    { to: '/client/account', icon: User, label: 'Account', badge: 0, onClear: undefined },
+    { to: '/client/profile', icon: User, label: 'My Profile', badge: 0, onClear: undefined },
   ];
 
   return (
