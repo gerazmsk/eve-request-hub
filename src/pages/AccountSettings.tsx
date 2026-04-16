@@ -1,13 +1,22 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut } from 'lucide-react';
+import { LogOut, Pencil, Check, X } from 'lucide-react';
 import { ClientNav } from '@/components/ClientNav';
 import { ProviderNav } from '@/components/ProviderNav';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AccountSettings() {
   const { user, profile, logOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [saving, setSaving] = useState(false);
 
   if (!user || !profile) { navigate('/'); return null; }
 
@@ -16,6 +25,25 @@ export default function AccountSettings() {
   const handleLogOut = async () => {
     await logOut();
     navigate('/');
+  };
+
+  const startEditPhone = () => {
+    setPhone(profile.phone || '');
+    setEditingPhone(true);
+  };
+
+  const savePhone = async () => {
+    setSaving(true);
+    const { error } = await supabase.from('profiles').update({ phone }).eq('user_id', user.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to update phone number.', variant: 'destructive' });
+    } else {
+      toast({ title: 'Updated', description: 'Phone number saved.' });
+      // Update local profile by reloading
+      window.location.reload();
+    }
+    setEditingPhone(false);
   };
 
   return (
@@ -34,6 +62,23 @@ export default function AccountSettings() {
             </div>
           </div>
         </div>
+
+        <div className="rounded-xl border bg-card p-5 space-y-2">
+          <Label className="text-muted-foreground text-xs">Phone Number</Label>
+          {editingPhone ? (
+            <div className="flex items-center gap-2">
+              <Input value={phone} onChange={e => setPhone(e.target.value)} className="rounded-xl flex-1" placeholder="e.g. 555-0100" />
+              <Button size="icon" variant="ghost" onClick={savePhone} disabled={saving}><Check className="h-4 w-4 text-green-600" /></Button>
+              <Button size="icon" variant="ghost" onClick={() => setEditingPhone(false)}><X className="h-4 w-4 text-muted-foreground" /></Button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <p className="font-medium">{profile.phone || 'Not set'}</p>
+              <Button size="icon" variant="ghost" onClick={startEditPhone}><Pencil className="h-4 w-4 text-muted-foreground" /></Button>
+            </div>
+          )}
+        </div>
+
         <Button variant="outline" onClick={handleLogOut} className="w-full rounded-xl h-11 text-destructive border-destructive/20 hover:bg-destructive/5">
           <LogOut className="h-4 w-4 mr-2" />Log out
         </Button>
