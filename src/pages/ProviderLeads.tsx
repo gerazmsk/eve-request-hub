@@ -268,7 +268,7 @@ export default function ProviderLeads() {
               hotLeadThreads.map(thread => {
                 const client = hotLeadProfiles.find((p: any) => p.user_id === thread.client_id);
                 const firstMsg = getFirstMsg(thread.id);
-                const isUnlocked = unlockedLeads.has(thread.id);
+                const isUnlocked = isThreadUnlocked(thread.id);
 
                 return (
                   <div key={thread.id} className="rounded-xl border bg-card overflow-hidden">
@@ -325,7 +325,7 @@ export default function ProviderLeads() {
                           </Button>
                         </div>
                       ) : (
-                        <Button size="sm" className="w-full rounded-xl gap-1.5" onClick={() => handleUnlock(thread.id)}>
+                        <Button size="sm" className="w-full rounded-xl gap-1.5" onClick={() => handleUnlock('thread', thread.id)}>
                           <Unlock className="h-3.5 w-3.5" />
                           Unlock Lead ({UNLOCK_COST} credit)
                         </Button>
@@ -397,7 +397,7 @@ export default function ProviderLeads() {
                           </Button>
                         </>
                       ) : (
-                        <Button size="sm" className="w-full rounded-xl gap-1.5" onClick={() => handleUnlock(`req-${req.id}`)}>
+                        <Button size="sm" className="w-full rounded-xl gap-1.5" onClick={() => handleUnlock('request', req.id)}>
                           <Unlock className="h-3.5 w-3.5" />
                           Unlock & Respond ({UNLOCK_COST} credit)
                         </Button>
