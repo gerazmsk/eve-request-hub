@@ -216,7 +216,7 @@ export default function ProviderLeads() {
   const getFirstMsg = (threadId: string) => firstMessages.find((m: any) => m.thread_id === threadId);
   const getCategoryLabel = (key: string) => CATEGORIES.find(c => c.key === key)?.label || key;
 
-  const isRequestUnlocked = (requestId: string) => unlockedLeads.has(`req-${requestId}`);
+  
 
   return (
     <div className="min-h-screen pb-20">
