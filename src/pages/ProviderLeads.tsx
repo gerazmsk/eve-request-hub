@@ -104,7 +104,25 @@ export default function ProviderLeads() {
     },
   });
 
+  // Persisted unlocks
+  const { data: unlocks = [] } = useQuery({
+    queryKey: ['provider-unlocks', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('provider_unlocks')
+        .select('*')
+        .eq('provider_id', user!.id);
+      return data || [];
+    },
+  });
+
   if (!user) return null;
+
+  const isThreadUnlocked = (threadId: string) =>
+    unlocks.some((u: any) => u.unlock_type === 'thread' && u.target_id === threadId);
+  const isRequestUnlocked = (requestId: string) =>
+    unlocks.some((u: any) => u.unlock_type === 'request' && u.target_id === requestId);
 
   const currentBalance = credits?.balance ?? 0;
 
