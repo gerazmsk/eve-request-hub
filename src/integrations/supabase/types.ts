@@ -375,6 +375,30 @@ export type Database = {
           },
         ]
       }
+      provider_unlocks: {
+        Row: {
+          created_at: string
+          id: string
+          provider_id: string
+          target_id: string
+          unlock_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          provider_id: string
+          target_id: string
+          unlock_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          provider_id?: string
+          target_id?: string
+          unlock_type?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           comment: string

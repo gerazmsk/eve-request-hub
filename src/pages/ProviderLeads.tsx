@@ -20,7 +20,6 @@ export default function ProviderLeads() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [unlockedLeads, setUnlockedLeads] = useState<Set<string>>(new Set());
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [responseText, setResponseText] = useState('');
   const [sending, setSending] = useState(false);
@@ -105,17 +104,51 @@ export default function ProviderLeads() {
     },
   });
 
+  // Persisted unlocks
+  const { data: unlocks = [] } = useQuery({
+    queryKey: ['provider-unlocks', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('provider_unlocks')
+        .select('*')
+        .eq('provider_id', user!.id);
+      return data || [];
+    },
+  });
+
   if (!user) return null;
+
+  const isThreadUnlocked = (threadId: string) =>
+    unlocks.some((u: any) => u.unlock_type === 'thread' && u.target_id === threadId);
+  const isRequestUnlocked = (requestId: string) =>
+    unlocks.some((u: any) => u.unlock_type === 'request' && u.target_id === requestId);
 
   const currentBalance = credits?.balance ?? 0;
 
-  const handleUnlock = async (leadId: string) => {
+  const handleUnlock = async (unlockType: 'thread' | 'request', targetId: string) => {
+    const already = unlocks.some((u: any) => u.unlock_type === unlockType && u.target_id === targetId);
+    if (already) return;
+
     if (currentBalance < UNLOCK_COST) {
       toast.error('Not enough credits to unlock this lead');
       return;
     }
 
-    // Deduct credits
+    // Persist unlock first (UNIQUE constraint prevents double-charge)
+    const { error: unlockError } = await supabase
+      .from('provider_unlocks')
+      .insert({ provider_id: user.id, unlock_type: unlockType, target_id: targetId });
+
+    if (unlockError) {
+      if ((unlockError as any).code === '23505') {
+        queryClient.invalidateQueries({ queryKey: ['provider-unlocks'] });
+        return;
+      }
+      toast.error('Failed to unlock lead');
+      return;
+    }
+
     await supabase
       .from('provider_credits')
       .update({ balance: currentBalance - UNLOCK_COST })
@@ -125,11 +158,11 @@ export default function ProviderLeads() {
       provider_id: user.id,
       amount: -UNLOCK_COST,
       type: 'debit',
-      description: `Unlocked lead`,
+      description: `Unlocked ${unlockType}`,
     });
 
-    setUnlockedLeads(prev => new Set([...prev, leadId]));
     queryClient.invalidateQueries({ queryKey: ['provider-credits'] });
+    queryClient.invalidateQueries({ queryKey: ['provider-unlocks'] });
     toast.success('Lead unlocked! Contact details are now visible.');
   };
 
@@ -183,7 +216,7 @@ export default function ProviderLeads() {
   const getFirstMsg = (threadId: string) => firstMessages.find((m: any) => m.thread_id === threadId);
   const getCategoryLabel = (key: string) => CATEGORIES.find(c => c.key === key)?.label || key;
 
-  const isRequestUnlocked = (requestId: string) => unlockedLeads.has(`req-${requestId}`);
+  
 
   return (
     <div className="min-h-screen pb-20">
@@ -235,7 +268,7 @@ export default function ProviderLeads() {
               hotLeadThreads.map(thread => {
                 const client = hotLeadProfiles.find((p: any) => p.user_id === thread.client_id);
                 const firstMsg = getFirstMsg(thread.id);
-                const isUnlocked = unlockedLeads.has(thread.id);
+                const isUnlocked = isThreadUnlocked(thread.id);
 
                 return (
                   <div key={thread.id} className="rounded-xl border bg-card overflow-hidden">
@@ -292,7 +325,7 @@ export default function ProviderLeads() {
                           </Button>
                         </div>
                       ) : (
-                        <Button size="sm" className="w-full rounded-xl gap-1.5" onClick={() => handleUnlock(thread.id)}>
+                        <Button size="sm" className="w-full rounded-xl gap-1.5" onClick={() => handleUnlock('thread', thread.id)}>
                           <Unlock className="h-3.5 w-3.5" />
                           Unlock Lead ({UNLOCK_COST} credit)
                         </Button>
@@ -364,7 +397,7 @@ export default function ProviderLeads() {
                           </Button>
                         </>
                       ) : (
-                        <Button size="sm" className="w-full rounded-xl gap-1.5" onClick={() => handleUnlock(`req-${req.id}`)}>
+                        <Button size="sm" className="w-full rounded-xl gap-1.5" onClick={() => handleUnlock('request', req.id)}>
                           <Unlock className="h-3.5 w-3.5" />
                           Unlock & Respond ({UNLOCK_COST} credit)
                         </Button>
