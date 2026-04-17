@@ -168,49 +168,97 @@ export default function ProviderLeads() {
 
   const handleRespondToRequest = async () => {
     if (!selectedRequest || !responseText.trim()) return;
+    if (!selectedRequest.client_id || !selectedRequest.id) {
+      toast.error('Missing request data. Please refresh and try again.');
+      return;
+    }
     setSending(true);
 
-    let threadId: string;
-    const { data: existing } = await supabase
-      .from('message_threads')
-      .select('id')
-      .eq('client_id', selectedRequest.client_id)
-      .eq('provider_id', user.id)
-      .eq('request_id', selectedRequest.id)
-      .maybeSingle();
+    try {
+      let threadId: string | null = null;
 
-    if (existing) {
-      threadId = existing.id;
-    } else {
-      const { data: newThread, error } = await supabase
+      // 1) Look for a thread tied to THIS request
+      const { data: existingForRequest, error: existErr } = await supabase
         .from('message_threads')
-        .insert({ client_id: selectedRequest.client_id, provider_id: user.id, request_id: selectedRequest.id })
         .select('id')
-        .single();
-      if (error || !newThread) {
-        toast.error('Failed to create conversation');
+        .eq('client_id', selectedRequest.client_id)
+        .eq('provider_id', user.id)
+        .eq('request_id', selectedRequest.id)
+        .maybeSingle();
+
+      if (existErr) console.error('[accept] lookup by request failed:', existErr);
+      if (existingForRequest) threadId = existingForRequest.id;
+
+      // 2) Fallback: any thread between this provider+client without request_id (e.g. Hot Lead chat)
+      if (!threadId) {
+        const { data: existingGeneric, error: genErr } = await supabase
+          .from('message_threads')
+          .select('id, request_id')
+          .eq('client_id', selectedRequest.client_id)
+          .eq('provider_id', user.id)
+          .is('request_id', null)
+          .maybeSingle();
+        if (genErr) console.error('[accept] lookup generic failed:', genErr);
+        if (existingGeneric) threadId = existingGeneric.id;
+      }
+
+      // 3) Create new thread if none exists
+      if (!threadId) {
+        const { data: newThread, error: createErr } = await supabase
+          .from('message_threads')
+          .insert({
+            client_id: selectedRequest.client_id,
+            provider_id: user.id,
+            request_id: selectedRequest.id,
+          })
+          .select('id')
+          .single();
+
+        if (createErr || !newThread) {
+          console.error('[accept] create thread failed:', createErr, {
+            client_id: selectedRequest.client_id,
+            provider_id: user.id,
+            request_id: selectedRequest.id,
+          });
+          toast.error(`Failed to create conversation: ${createErr?.message || 'unknown error'}`);
+          setSending(false);
+          return;
+        }
+        threadId = newThread.id;
+      }
+
+      // 4) Send the response message
+      const { error: msgErr } = await supabase.from('messages').insert({
+        thread_id: threadId,
+        sender_id: user.id,
+        text: responseText.trim(),
+      });
+      if (msgErr) {
+        console.error('[accept] send message failed:', msgErr);
+        toast.error(`Message not sent: ${msgErr.message}`);
         setSending(false);
         return;
       }
-      threadId = newThread.id;
+
+      // 5) Mark request as confirmed
+      const { error: updErr } = await supabase
+        .from('service_requests')
+        .update({ status: 'confirmed' })
+        .eq('id', selectedRequest.id);
+      if (updErr) console.error('[accept] update request status failed:', updErr);
+
+      setSending(false);
+      setSelectedRequest(null);
+      setResponseText('');
+      toast.success('Request accepted! Response sent to client.');
+      queryClient.invalidateQueries({ queryKey: ['threads'] });
+      queryClient.invalidateQueries({ queryKey: ['open-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['provider-requests'] });
+    } catch (err: any) {
+      console.error('[accept] unexpected error:', err);
+      toast.error(`Unexpected error: ${err?.message || 'see console'}`);
+      setSending(false);
     }
-
-    await supabase.from('messages').insert({
-      thread_id: threadId,
-      sender_id: user.id,
-      text: responseText.trim(),
-    });
-
-    // Update request status to confirmed
-    await supabase.from('service_requests').update({ status: 'confirmed' }).eq('id', selectedRequest.id);
-
-    setSending(false);
-    setSelectedRequest(null);
-    setResponseText('');
-    toast.success('Request accepted! Response sent to client.');
-    queryClient.invalidateQueries({ queryKey: ['threads'] });
-    queryClient.invalidateQueries({ queryKey: ['open-requests'] });
-    queryClient.invalidateQueries({ queryKey: ['provider-requests'] });
   };
 
   const getFirstMsg = (threadId: string) => firstMessages.find((m: any) => m.thread_id === threadId);
