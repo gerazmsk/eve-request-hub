@@ -126,13 +126,29 @@ export default function ProviderLeads() {
 
   const currentBalance = credits?.balance ?? 0;
 
-  const handleUnlock = async (leadId: string) => {
+  const handleUnlock = async (unlockType: 'thread' | 'request', targetId: string) => {
+    const already = unlocks.some((u: any) => u.unlock_type === unlockType && u.target_id === targetId);
+    if (already) return;
+
     if (currentBalance < UNLOCK_COST) {
       toast.error('Not enough credits to unlock this lead');
       return;
     }
 
-    // Deduct credits
+    // Persist unlock first (UNIQUE constraint prevents double-charge)
+    const { error: unlockError } = await supabase
+      .from('provider_unlocks')
+      .insert({ provider_id: user.id, unlock_type: unlockType, target_id: targetId });
+
+    if (unlockError) {
+      if ((unlockError as any).code === '23505') {
+        queryClient.invalidateQueries({ queryKey: ['provider-unlocks'] });
+        return;
+      }
+      toast.error('Failed to unlock lead');
+      return;
+    }
+
     await supabase
       .from('provider_credits')
       .update({ balance: currentBalance - UNLOCK_COST })
@@ -142,11 +158,11 @@ export default function ProviderLeads() {
       provider_id: user.id,
       amount: -UNLOCK_COST,
       type: 'debit',
-      description: `Unlocked lead`,
+      description: `Unlocked ${unlockType}`,
     });
 
-    setUnlockedLeads(prev => new Set([...prev, leadId]));
     queryClient.invalidateQueries({ queryKey: ['provider-credits'] });
+    queryClient.invalidateQueries({ queryKey: ['provider-unlocks'] });
     toast.success('Lead unlocked! Contact details are now visible.');
   };
 
