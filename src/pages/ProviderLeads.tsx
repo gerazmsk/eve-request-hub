@@ -20,7 +20,6 @@ export default function ProviderLeads() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [unlockedLeads, setUnlockedLeads] = useState<Set<string>>(new Set());
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [responseText, setResponseText] = useState('');
   const [sending, setSending] = useState(false);
