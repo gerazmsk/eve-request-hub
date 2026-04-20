@@ -1,6 +1,6 @@
 export type UserRole = 'client' | 'provider';
 
-export type RequestStatus = 'pending' | 'confirmed' | 'declined';
+export type RequestStatus = 'pending' | 'unlocked' | 'offer_sent' | 'confirmed' | 'accepted' | 'completed' | 'closed' | 'declined';
 
 export type ProviderEventStatus = 'pending' | 'approved' | 'canceled' | 'completed';
 
