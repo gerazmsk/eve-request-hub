@@ -490,6 +490,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_current_user: { Args: never; Returns: undefined }
       unlock_provider_target: {
         Args: { _cost?: number; _target_id: string; _unlock_type: string }
         Returns: Json
