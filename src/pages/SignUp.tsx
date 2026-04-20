@@ -52,7 +52,7 @@ export default function SignUp() {
       toast({ title: 'Sign up failed', description: error.message, variant: 'destructive' });
     } else {
       sessionStorage.removeItem('eve-selected-role');
-      // Auto-confirm is enabled, user is logged in immediately
+      toast({ title: 'Account created', description: 'Welcome to EVE.' });
       navigate(selectedRole === 'client' ? '/client' : '/provider');
     }
   };
