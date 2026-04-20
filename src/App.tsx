@@ -28,6 +28,8 @@ import UserProfileView from "./pages/UserProfileView";
 import GroupChatThread from "./pages/GroupChatThread";
 import CreateGroupChat from "./pages/CreateGroupChat";
 import ClientProfile from "./pages/ClientProfile";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +61,8 @@ const AppRoutes = () => (
     <Route path="/account" element={<AuthRedirect><AccountPage /></AuthRedirect>} />
     <Route path="/signup" element={<AuthRedirect><SignUp /></AuthRedirect>} />
     <Route path="/login" element={<AuthRedirect><LogIn /></AuthRedirect>} />
+    <Route path="/privacy" element={<PrivacyPolicy />} />
+    <Route path="/terms" element={<TermsOfService />} />
 
     {/* Client routes */}
     <Route path="/client" element={<RequireAuth role="client"><ClientHome /></RequireAuth>} />
