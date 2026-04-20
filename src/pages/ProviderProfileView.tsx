@@ -88,6 +88,20 @@ export default function ProviderProfileView() {
     },
   });
 
+  const { data: completedProjects = 0 } = useQuery({
+    queryKey: ['provider-public-completed-projects', profile?.user_id],
+    enabled: !!profile?.user_id,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('service_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('provider_id', profile!.user_id)
+        .eq('status', 'completed')
+        .lte('event_date', new Date().toISOString().slice(0, 10));
+      return count || 0;
+    },
+  });
+
   if (!profile) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading...</div>;
   }
@@ -98,19 +112,6 @@ export default function ProviderProfileView() {
   const categoryLabel = CATEGORIES.find(c => c.key === profile.category)?.label || profile.category;
   const galleryImages = profile.gallery || [];
 
-  const { data: completedProjects = 0 } = useQuery({
-    queryKey: ['provider-public-completed-projects', profile.user_id],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from('service_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('provider_id', profile.user_id)
-        .eq('status', 'completed')
-        .lte('event_date', new Date().toISOString().slice(0, 10));
-      return count || 0;
-    },
-  });
-
   const handleTextMe = async () => {
     if (!user) return;
     const { data: existing } = await supabase
@@ -120,7 +121,7 @@ export default function ProviderProfileView() {
       .eq('provider_id', profile.user_id)
       .is('request_id', null)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       navigate(`/client/messages/${existing.id}`);
