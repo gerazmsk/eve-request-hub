@@ -44,14 +44,16 @@ export default function ProviderEventDetail() {
       .select('id')
       .eq('client_id', req.client_id)
       .eq('provider_id', user.id)
-      .single();
+      .eq('request_id', req.id)
+      .limit(1)
+      .maybeSingle();
 
     if (existing) {
       navigate(`/provider/messages/${existing.id}`);
     } else {
       const { data: newThread } = await supabase
         .from('message_threads')
-        .insert({ client_id: req.client_id, provider_id: user.id })
+        .insert({ client_id: req.client_id, provider_id: user.id, request_id: req.id })
         .select('id')
         .single();
       if (newThread) navigate(`/provider/messages/${newThread.id}`);
@@ -92,7 +94,7 @@ export default function ProviderEventDetail() {
         <div className="space-y-3 pt-2">
           {req.status === 'pending' && (
             <>
-              <Button className="w-full rounded-xl h-12 text-base" onClick={() => handleStatusUpdate('confirmed')}>Confirm Request</Button>
+              <Button className="w-full rounded-xl h-12 text-base" onClick={() => handleStatusUpdate('accepted')}>Accept Request</Button>
               <Button variant="outline" className="w-full rounded-xl h-11 text-destructive border-destructive/20 hover:bg-destructive/5" onClick={() => handleStatusUpdate('declined')}>Decline Request</Button>
             </>
           )}

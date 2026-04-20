@@ -35,6 +35,7 @@ const queryClient = new QueryClient();
 function AuthRedirect({ children }: { children: React.ReactNode }) {
   const { user, profile, isReady } = useAuth();
   if (!isReady) return <div className="flex min-h-screen items-center justify-center"><p>Loading...</p></div>;
+  if (user && !profile) return <div className="flex min-h-screen items-center justify-center"><p>Loading account...</p></div>;
   if (user && profile) {
     return <Navigate to={profile.role === 'client' ? '/client' : '/provider'} replace />;
   }
@@ -45,6 +46,7 @@ function RequireAuth({ children, role }: { children: React.ReactNode; role?: 'cl
   const { user, profile, isReady } = useAuth();
   if (!isReady) return <div className="flex min-h-screen items-center justify-center"><p>Loading...</p></div>;
   if (!user) return <Navigate to="/" replace />;
+  if (!profile) return <div className="flex min-h-screen items-center justify-center"><p>Loading account...</p></div>;
   if (role && profile && profile.role !== role) {
     return <Navigate to={profile.role === 'client' ? '/client' : '/provider'} replace />;
   }
