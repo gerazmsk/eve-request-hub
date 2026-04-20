@@ -119,10 +119,10 @@ export default function ProviderDashboard() {
 
   const statusColor = (s: string) => {
     switch (s) {
-      case 'approved': return 'text-green-600 bg-green-50';
-      case 'canceled': return 'text-red-600 bg-red-50';
-      case 'completed': return 'text-blue-600 bg-blue-50';
-      default: return 'text-yellow-600 bg-yellow-50';
+      case 'approved': return 'text-eve-sage bg-eve-sage-light';
+      case 'canceled': return 'text-destructive bg-destructive/10';
+      case 'completed': return 'text-primary bg-primary/10';
+      default: return 'text-accent bg-accent/10';
     }
   };
 

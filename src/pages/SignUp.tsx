@@ -120,7 +120,7 @@ export default function SignUp() {
                 {PASSWORD_RULES.map(rule => {
                   const passed = rule.test(form.password);
                   return (
-                    <li key={rule.label} className={`flex items-center gap-1.5 text-xs ${passed ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    <li key={rule.label} className={`flex items-center gap-1.5 text-xs ${passed ? 'text-eve-sage' : 'text-muted-foreground'}`}>
                       {passed ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
                       {rule.label}
                     </li>

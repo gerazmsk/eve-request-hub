@@ -91,7 +91,7 @@ export function ReviewsList({ userId, reviewCount = 0 }: ReviewsListProps) {
                   {[1, 2, 3, 4, 5].map(star => (
                     <Star
                       key={star}
-                      className={`h-4 w-4 ${star <= review.rating ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground/30'}`}
+                      className={`h-4 w-4 ${star <= review.rating ? 'text-eve-gold fill-eve-gold' : 'text-muted-foreground/30'}`}
                     />
                   ))}
                 </div>

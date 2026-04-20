@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function LogIn() {
   const { logIn } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const selectedRole = sessionStorage.getItem('eve-selected-role') as 'client' | 'provider' | null;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,6 +19,7 @@ export default function LogIn() {
     e.preventDefault();
     if (!selectedRole) {
       toast({ title: 'Choose account type', description: 'Please choose Client or Provider before logging in.', variant: 'destructive' });
+      navigate('/');
       return;
     }
     setLoading(true);
