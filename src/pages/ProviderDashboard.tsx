@@ -60,7 +60,7 @@ export default function ProviderDashboard() {
   if (!user) return null;
 
   // Merge provider_events and confirmed/pending service_requests for calendar
-  const confirmedRequests = requests.filter((r: any) => r.status === 'confirmed' || r.status === 'pending');
+  const confirmedRequests = requests.filter((r: any) => ['pending', 'accepted', 'completed'].includes(r.status));
 
   const eventsForDate = selectedDate
     ? myEvents.filter((e: any) => isSameDay(parseISO(e.date), selectedDate))

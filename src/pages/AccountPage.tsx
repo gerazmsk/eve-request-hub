@@ -30,6 +30,7 @@ export default function Account() {
           <Button onClick={() => navigate('/signup')} className="w-full h-12 text-base rounded-xl" size="lg">Sign up</Button>
           <Button onClick={() => navigate('/login')} variant="outline" className="w-full h-12 text-base rounded-xl" size="lg">Log in</Button>
         </div>
+        <p className="text-xs text-muted-foreground">Continue as a {selectedRole} account only.</p>
       </div>
     </div>
   );
