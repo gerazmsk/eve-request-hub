@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, Pencil, Check, X } from 'lucide-react';
+import { LogOut, Pencil, Check, X, Mail, FileText, Shield, Trash2 } from 'lucide-react';
 import { ClientNav } from '@/components/ClientNav';
 import { ProviderNav } from '@/components/ProviderNav';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +23,18 @@ export default function AccountSettings() {
   const isClient = profile.role === 'client';
 
   const handleLogOut = async () => {
+    await logOut();
+    navigate('/');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
+    const { error } = await supabase.rpc('delete_current_user' as any);
+    if (error) {
+      console.error('[account] delete failed:', error);
+      toast({ title: 'Account not deleted', description: error.message, variant: 'destructive' });
+      return;
+    }
     await logOut();
     navigate('/');
   };
@@ -79,8 +91,17 @@ export default function AccountSettings() {
           )}
         </div>
 
+        <div className="rounded-xl border bg-card p-5 space-y-3">
+          <a className="flex items-center gap-2 text-sm font-medium" href="/privacy" target="_blank" rel="noreferrer"><Shield className="h-4 w-4 text-primary" />Privacy Policy</a>
+          <a className="flex items-center gap-2 text-sm font-medium" href="/terms" target="_blank" rel="noreferrer"><FileText className="h-4 w-4 text-primary" />Terms of Service</a>
+          <a className="flex items-center gap-2 text-sm font-medium" href="mailto:support@eve-request-hub.lovable.app"><Mail className="h-4 w-4 text-primary" />Support / Contact</a>
+        </div>
+
         <Button variant="outline" onClick={handleLogOut} className="w-full rounded-xl h-11 text-destructive border-destructive/20 hover:bg-destructive/5">
           <LogOut className="h-4 w-4 mr-2" />Log out
+        </Button>
+        <Button variant="outline" onClick={handleDeleteAccount} className="w-full rounded-xl h-11 text-destructive border-destructive/20 hover:bg-destructive/5">
+          <Trash2 className="h-4 w-4 mr-2" />Delete Account
         </Button>
       </div>
       {isClient ? <ClientNav /> : <ProviderNav />}

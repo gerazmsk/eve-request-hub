@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Star, MapPin, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, MessageCircle, BadgeCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,6 +9,8 @@ import { GalleryLightbox } from '@/components/GalleryLightbox';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { parseISO, isSameDay, format } from 'date-fns';
+import { ReviewsList } from '@/components/ReviewsList';
+import { CATEGORIES } from '@/types';
 
 function formatTime12(t: string) {
   const [h, m] = t.split(':').map(Number);
@@ -79,7 +81,7 @@ export default function ProviderProfileView() {
     queryFn: async () => {
       const { data } = await supabase
         .from('provider_profiles')
-        .select('*, profiles!provider_profiles_profile_fkey(first_name, last_name)')
+        .select('*, profiles!provider_profiles_profile_fkey(first_name, last_name, is_verified)')
         .eq('id', profileId || '')
         .single();
       return data;
@@ -92,7 +94,22 @@ export default function ProviderProfileView() {
 
   const firstName = (profile as any).profiles?.first_name || '';
   const lastName = (profile as any).profiles?.last_name || '';
+  const isVerified = Boolean((profile as any).profiles?.is_verified);
+  const categoryLabel = CATEGORIES.find(c => c.key === profile.category)?.label || profile.category;
   const galleryImages = profile.gallery || [];
+
+  const { data: completedProjects = 0 } = useQuery({
+    queryKey: ['provider-public-completed-projects', profile.user_id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('service_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('provider_id', profile.user_id)
+        .eq('status', 'completed')
+        .lte('event_date', new Date().toISOString().slice(0, 10));
+      return count || 0;
+    },
+  });
 
   const handleTextMe = async () => {
     if (!user) return;
@@ -101,6 +118,8 @@ export default function ProviderProfileView() {
       .select('id')
       .eq('client_id', user.id)
       .eq('provider_id', profile.user_id)
+      .is('request_id', null)
+      .limit(1)
       .single();
 
     if (existing) {
@@ -137,7 +156,10 @@ export default function ProviderProfileView() {
             )}
           </div>
           <div className="pb-1">
-            <h1 className="font-display text-2xl font-bold">{firstName} {lastName}</h1>
+            <div className="flex items-center gap-1.5">
+              <h1 className="font-display text-2xl font-bold">{firstName} {lastName}</h1>
+              {isVerified && <BadgeCheck className="h-5 w-5 text-primary fill-primary/20" />}
+            </div>
             <p className="text-muted-foreground">{profile.title}</p>
           </div>
         </div>
@@ -145,7 +167,15 @@ export default function ProviderProfileView() {
           <span className="flex items-center gap-1"><Star className="h-4 w-4 fill-eve-gold text-eve-gold" />{profile.rating} ({profile.review_count} reviews)</span>
           <span className="flex items-center gap-1"><MapPin className="h-4 w-4" />{profile.location || 'Location TBD'}</span>
         </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-xl border bg-card p-4 text-center">
+            <p className="text-2xl font-bold text-primary">{completedProjects}</p>
+            <p className="text-xs text-muted-foreground">Completed Projects</p>
+          </div>
+          <ReviewsList userId={profile.user_id} reviewCount={profile.review_count} />
+        </div>
         <div className="font-semibold text-lg text-primary">{profile.price_label}</div>
+        <p className="text-sm text-muted-foreground">{categoryLabel}</p>
         <div className="flex flex-wrap gap-2">
           {(profile.tags || []).map((tag: string) => (
             <span key={tag} className="text-xs font-medium bg-secondary rounded-full px-3 py-1">{tag}</span>
@@ -168,18 +198,8 @@ export default function ProviderProfileView() {
                     onClick={() => openLightbox(i)}
                   />
                 ))
-              : [1, 2, 3].map(i => <div key={i} className="aspect-square rounded-lg bg-secondary" />)
+              : <p className="col-span-3 text-sm text-muted-foreground py-6 text-center">No portfolio media yet.</p>
             }
-          </div>
-        </div>
-        <div>
-          <h2 className="font-display text-lg font-semibold mb-2">Reviews</h2>
-          <div className="rounded-xl border bg-card p-4">
-            <div className="flex items-center gap-2 mb-2">
-              {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-eve-gold text-eve-gold" />)}
-            </div>
-            <p className="text-sm text-muted-foreground">"Amazing work! Captured every special moment perfectly."</p>
-            <p className="text-xs text-muted-foreground mt-1">— Sarah M.</p>
           </div>
         </div>
         <AvailabilitySection providerId={profile.user_id} selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
