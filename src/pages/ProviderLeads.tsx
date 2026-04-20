@@ -130,40 +130,21 @@ export default function ProviderLeads() {
     const already = unlocks.some((u: any) => u.unlock_type === unlockType && u.target_id === targetId);
     if (already) return;
 
-    if (currentBalance < UNLOCK_COST) {
-      toast.error('Not enough credits to unlock this lead');
-      return;
-    }
-
-    // Persist unlock first (UNIQUE constraint prevents double-charge)
-    const { error: unlockError } = await supabase
-      .from('provider_unlocks')
-      .insert({ provider_id: user.id, unlock_type: unlockType, target_id: targetId });
-
-    if (unlockError) {
-      if ((unlockError as any).code === '23505') {
-        queryClient.invalidateQueries({ queryKey: ['provider-unlocks'] });
-        return;
-      }
-      toast.error('Failed to unlock lead');
-      return;
-    }
-
-    await supabase
-      .from('provider_credits')
-      .update({ balance: currentBalance - UNLOCK_COST })
-      .eq('provider_id', user.id);
-
-    await supabase.from('credit_transactions').insert({
-      provider_id: user.id,
-      amount: -UNLOCK_COST,
-      type: 'debit',
-      description: `Unlocked ${unlockType}`,
+    const { data, error } = await supabase.rpc('unlock_provider_target' as any, {
+      _unlock_type: unlockType,
+      _target_id: targetId,
+      _cost: UNLOCK_COST,
     });
+
+    if (error || !(data as any)?.ok) {
+      console.error('[unlock] failed:', { error, data, unlockType, targetId });
+      toast.error((data as any)?.reason === 'insufficient_credits' ? 'Not enough credits to unlock this lead' : `Failed to unlock lead: ${error?.message || (data as any)?.reason || 'unknown error'}`);
+      return;
+    }
 
     queryClient.invalidateQueries({ queryKey: ['provider-credits'] });
     queryClient.invalidateQueries({ queryKey: ['provider-unlocks'] });
-    toast.success('Lead unlocked! Contact details are now visible.');
+    toast.success((data as any)?.already_unlocked ? 'Already unlocked. Contact details are visible.' : 'Lead unlocked! Contact details are now visible.');
   };
 
   const handleRespondToRequest = async () => {
@@ -183,7 +164,8 @@ export default function ProviderLeads() {
         .select('id')
         .eq('client_id', selectedRequest.client_id)
         .eq('provider_id', user.id)
-        .eq('request_id', selectedRequest.id)
+          .eq('request_id', selectedRequest.id)
+          .limit(1)
         .maybeSingle();
 
       if (existErr) console.error('[accept] lookup by request failed:', existErr);
@@ -197,6 +179,7 @@ export default function ProviderLeads() {
           .eq('client_id', selectedRequest.client_id)
           .eq('provider_id', user.id)
           .is('request_id', null)
+          .limit(1)
           .maybeSingle();
         if (genErr) console.error('[accept] lookup generic failed:', genErr);
         if (existingGeneric) threadId = existingGeneric.id;
@@ -240,17 +223,17 @@ export default function ProviderLeads() {
         return;
       }
 
-      // 5) Mark request as confirmed
+      // 5) Mark request as accepted
       const { error: updErr } = await supabase
         .from('service_requests')
-        .update({ status: 'confirmed' })
+        .update({ status: 'accepted' })
         .eq('id', selectedRequest.id);
       if (updErr) console.error('[accept] update request status failed:', updErr);
 
       setSending(false);
       setSelectedRequest(null);
       setResponseText('');
-      toast.success('Request accepted! Response sent to client.');
+      toast.success('Request accepted. Conversation is ready.');
       queryClient.invalidateQueries({ queryKey: ['threads'] });
       queryClient.invalidateQueries({ queryKey: ['open-requests'] });
       queryClient.invalidateQueries({ queryKey: ['provider-requests'] });
