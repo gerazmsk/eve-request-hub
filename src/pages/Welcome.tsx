@@ -30,7 +30,9 @@ export default function Welcome() {
             I offer event services
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">By continuing, you agree to our Terms & Privacy Policy</p>
+        <p className="text-xs text-muted-foreground">
+          By continuing, you agree to our <a href="/terms" className="underline underline-offset-2">Terms</a> & <a href="/privacy" className="underline underline-offset-2">Privacy Policy</a>
+        </p>
       </div>
     </div>
   );

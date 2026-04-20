@@ -39,7 +39,9 @@ export default function RequestDetail() {
       .select('id')
       .eq('client_id', req.client_id)
       .eq('provider_id', req.provider_id)
-      .single();
+      .eq('request_id', req.id)
+      .limit(1)
+      .maybeSingle();
 
     const basePath = isClient ? '/client' : '/provider';
     if (existing) {
@@ -47,7 +49,7 @@ export default function RequestDetail() {
     } else {
       const { data: newThread } = await supabase
         .from('message_threads')
-        .insert({ client_id: req.client_id, provider_id: req.provider_id })
+        .insert({ client_id: req.client_id, provider_id: req.provider_id, request_id: req.id })
         .select('id')
         .single();
       if (newThread) navigate(`${basePath}/messages/${newThread.id}`);

@@ -15,7 +15,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function ProviderEditProfile() {
-  const { user, profile: authProfile, logOut } = useAuth();
+  const { user, profile: authProfile, logOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -32,7 +32,7 @@ export default function ProviderEditProfile() {
     },
   });
 
-  // Count completed projects (confirmed requests)
+  // Count completed projects only after completion
   const { data: completedProjects = 0 } = useQuery({
     queryKey: ['provider-completed-projects', user?.id],
     enabled: !!user,
@@ -41,7 +41,8 @@ export default function ProviderEditProfile() {
         .from('service_requests')
         .select('*', { count: 'exact', head: true })
         .eq('provider_id', user!.id)
-        .in('status', ['completed', 'confirmed']);
+        .eq('status', 'completed')
+        .lte('event_date', new Date().toISOString().slice(0, 10));
       return count || 0;
     },
   });
@@ -71,20 +72,27 @@ export default function ProviderEditProfile() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Update provider profile
-    await supabase.from('provider_profiles').update({
+    const { error: providerError } = await supabase.from('provider_profiles').update({
       category: form.category,
       location: form.location,
       about: form.about,
       price_label: form.priceLabel,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
     }).eq('id', profile.id);
-    // Update first/last name on profiles table
-    await supabase.from('profiles').update({
+
+    const { error: nameError } = await supabase.from('profiles').update({
       first_name: form.firstName,
       last_name: form.lastName,
     }).eq('user_id', user.id);
+
+    if (providerError || nameError) {
+      console.error('[profile] save failed:', { providerError, nameError });
+      toast({ title: 'Profile not saved', description: providerError?.message || nameError?.message || 'Please try again.', variant: 'destructive' });
+      return;
+    }
+
     queryClient.invalidateQueries({ queryKey: ['my-provider-profile'] });
+    await refreshProfile();
     toast({ title: 'Profile saved', description: 'Your changes have been saved successfully.' });
   };
 

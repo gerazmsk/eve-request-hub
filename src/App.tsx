@@ -28,6 +28,8 @@ import UserProfileView from "./pages/UserProfileView";
 import GroupChatThread from "./pages/GroupChatThread";
 import CreateGroupChat from "./pages/CreateGroupChat";
 import ClientProfile from "./pages/ClientProfile";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,7 @@ const queryClient = new QueryClient();
 function AuthRedirect({ children }: { children: React.ReactNode }) {
   const { user, profile, isReady } = useAuth();
   if (!isReady) return <div className="flex min-h-screen items-center justify-center"><p>Loading...</p></div>;
+  if (user && !profile) return <div className="flex min-h-screen items-center justify-center"><p>Loading account...</p></div>;
   if (user && profile) {
     return <Navigate to={profile.role === 'client' ? '/client' : '/provider'} replace />;
   }
@@ -45,6 +48,7 @@ function RequireAuth({ children, role }: { children: React.ReactNode; role?: 'cl
   const { user, profile, isReady } = useAuth();
   if (!isReady) return <div className="flex min-h-screen items-center justify-center"><p>Loading...</p></div>;
   if (!user) return <Navigate to="/" replace />;
+  if (!profile) return <div className="flex min-h-screen items-center justify-center"><p>Loading account...</p></div>;
   if (role && profile && profile.role !== role) {
     return <Navigate to={profile.role === 'client' ? '/client' : '/provider'} replace />;
   }
@@ -57,6 +61,8 @@ const AppRoutes = () => (
     <Route path="/account" element={<AuthRedirect><AccountPage /></AuthRedirect>} />
     <Route path="/signup" element={<AuthRedirect><SignUp /></AuthRedirect>} />
     <Route path="/login" element={<AuthRedirect><LogIn /></AuthRedirect>} />
+    <Route path="/privacy" element={<PrivacyPolicy />} />
+    <Route path="/terms" element={<TermsOfService />} />
 
     {/* Client routes */}
     <Route path="/client" element={<RequireAuth role="client"><ClientHome /></RequireAuth>} />

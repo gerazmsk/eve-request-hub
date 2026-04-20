@@ -19,7 +19,8 @@ export default function ClientProfile() {
         .from('service_requests')
         .select('*', { count: 'exact', head: true })
         .eq('client_id', user!.id)
-        .eq('status', 'confirmed');
+        .eq('status', 'completed')
+        .lte('event_date', new Date().toISOString().slice(0, 10));
       return count || 0;
     },
   });

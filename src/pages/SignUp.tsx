@@ -22,7 +22,6 @@ export default function SignUp() {
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [passwordTouched, setPasswordTouched] = useState(false);
 
   useEffect(() => {
     const role = sessionStorage.getItem('eve-selected-role');
@@ -52,7 +51,7 @@ export default function SignUp() {
       toast({ title: 'Sign up failed', description: error.message, variant: 'destructive' });
     } else {
       sessionStorage.removeItem('eve-selected-role');
-      // Auto-confirm is enabled, user is logged in immediately
+      toast({ title: 'Account created', description: 'Welcome to EVE.' });
       navigate(selectedRole === 'client' ? '/client' : '/provider');
     }
   };
@@ -112,22 +111,19 @@ export default function SignUp() {
               required
               value={form.password}
               onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              onFocus={() => setPasswordTouched(true)}
               className="rounded-xl"
             />
-            {passwordTouched && (
-              <ul className="mt-2 space-y-1">
-                {PASSWORD_RULES.map(rule => {
-                  const passed = rule.test(form.password);
-                  return (
-                    <li key={rule.label} className={`flex items-center gap-1.5 text-xs ${passed ? 'text-green-600' : 'text-muted-foreground'}`}>
-                      {passed ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
-                      {rule.label}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+            <ul className="mt-2 space-y-1">
+              {PASSWORD_RULES.map(rule => {
+                const passed = rule.test(form.password);
+                return (
+                  <li key={rule.label} className={`flex items-center gap-1.5 text-xs ${passed ? 'text-eve-sage' : 'text-muted-foreground'}`}>
+                    {passed ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                    {rule.label}
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </div>
         <Button type="submit" className="w-full h-12 rounded-xl text-base" disabled={loading || !passwordValid}>
