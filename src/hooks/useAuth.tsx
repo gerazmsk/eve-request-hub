@@ -8,8 +8,9 @@ interface AuthContextType {
   isReady: boolean;
   profile: { id: string; user_id: string; role: string; first_name: string; last_name: string; phone: string; is_verified: boolean } | null;
   signUp: (email: string, password: string, metadata: { role: string; first_name: string; last_name: string; phone: string }) => Promise<{ error: Error | null }>;
-  logIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  logIn: (email: string, password: string, expectedRole?: 'client' | 'provider') => Promise<{ error: Error | null }>;
   logOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -21,11 +22,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<AuthContextType['profile']>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        await fetchProfile(session.user.id);
       }
       setIsReady(true);
     });
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        setTimeout(() => fetchProfile(session.user.id), 0);
       } else {
         setProfile(null);
       }
@@ -44,8 +45,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('*').eq('user_id', userId).single();
+    const { data, error } = await supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
+    if (error) console.error('[auth] profile fetch failed:', error);
     if (data) setProfile(data);
+  };
+
+  const refreshProfile = async () => {
+    const userId = user?.id || session?.user?.id;
+    if (userId) await fetchProfile(userId);
   };
 
   const signUp = async (email: string, password: string, metadata: { role: string; first_name: string; last_name: string; phone: string }) => {
@@ -57,8 +64,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error as Error | null };
   };
 
-  const logIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const logIn = async (email: string, password: string, expectedRole?: 'client' | 'provider') => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!error && data.user && expectedRole) {
+      const { data: loginProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', data.user.id)
+        .maybeSingle();
+
+      if (profileError || !loginProfile) {
+        console.error('[auth] login profile lookup failed:', profileError);
+        await supabase.auth.signOut();
+        return { error: new Error('We could not verify this account. Please try again.') };
+      }
+
+      if (loginProfile.role !== expectedRole) {
+        await supabase.auth.signOut();
+        return { error: new Error(`This is a ${loginProfile.role} account. Please choose the correct account type before logging in.`) };
+      }
+
+      setProfile(loginProfile);
+    }
     return { error: error as Error | null };
   };
 
@@ -67,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isReady, profile, signUp, logIn, logOut }}>
+    <AuthContext.Provider value={{ user, session, isReady, profile, signUp, logIn, logOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
