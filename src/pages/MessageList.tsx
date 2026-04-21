@@ -9,6 +9,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
+const REACTIVATION_MS = 60 * 24 * 60 * 60 * 1000;
+
 export default function MessageList() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -81,7 +83,7 @@ export default function MessageList() {
     queryFn: async () => {
       const { data } = await supabase
         .from('provider_unlocks')
-        .select('*')
+        .select('id, unlock_type, target_id, created_at')
         .eq('provider_id', user!.id);
       return data || [];
     },
@@ -145,8 +147,37 @@ export default function MessageList() {
               const other = otherProfiles.find((p: any) => p.user_id === otherId);
               const lastMsg = lastMessages.find((m: any) => m.thread_id === thread.id);
               const isHotLead = !isClient && !thread.request_id;
-              const isUnlocked = providerUnlocks.some((u: any) => u.unlock_type === 'thread' && u.target_id === thread.id);
-              const locked = isHotLead && !isUnlocked;
+              // For providers: compute reactivation. We need to know if the latest message
+              // from the client arrived after a 60+ day gap, and whether they have an unlock
+              // newer than that gap.
+              let locked = false;
+              let isReactivated = false;
+              if (!isClient) {
+                const threadMessages = lastMessages
+                  .filter((m: any) => m.thread_id === thread.id)
+                  .slice()
+                  .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+                let reactivationPoint: number | null = null;
+                for (let i = 0; i < threadMessages.length; i++) {
+                  const msg: any = threadMessages[i];
+                  if (msg.sender_id !== thread.client_id) continue;
+                  const ts = new Date(msg.created_at).getTime();
+                  if (i === 0) {
+                    if (isHotLead) reactivationPoint = ts;
+                    continue;
+                  }
+                  const prevTs = new Date((threadMessages[i - 1] as any).created_at).getTime();
+                  if (ts - prevTs >= REACTIVATION_MS) reactivationPoint = ts;
+                }
+                const threadUnlocks = providerUnlocks
+                  .filter((u: any) => u.unlock_type === 'thread' && u.target_id === thread.id)
+                  .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                const latestUnlockTs = threadUnlocks[0] ? new Date(threadUnlocks[0].created_at).getTime() : null;
+                if (reactivationPoint !== null && (latestUnlockTs === null || latestUnlockTs < reactivationPoint)) {
+                  locked = true;
+                  isReactivated = !isHotLead;
+                }
+              }
               return (
                 <button key={thread.id} onClick={() => navigate(`${basePath}/messages/${thread.id}`)} className="w-full text-left rounded-xl border bg-card p-4 hover:shadow-sm transition-shadow">
                   <div className="flex items-center gap-3">
@@ -156,7 +187,7 @@ export default function MessageList() {
                     <div className="flex-1 min-w-0">
                       {locked ? (
                         <p className="font-medium text-sm text-muted-foreground">
-                          🔒 {other?.first_name?.[0]}*** {other?.last_name?.[0]}*** · Hot Lead
+                          🔒 {other?.first_name?.[0]}*** {other?.last_name?.[0]}*** · {isReactivated ? 'Reactivated Lead' : 'Hot Lead'}
                         </p>
                       ) : (
                         <p className="font-medium text-sm"><ClickableName userId={otherId}>{other?.first_name} {other?.last_name}</ClickableName></p>
