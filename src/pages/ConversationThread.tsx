@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, Lock, Unlock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,6 +8,9 @@ import { cn } from '@/lib/utils';
 import { ClickableName } from '@/components/ClickableName';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+const UNLOCK_COST = 1;
 
 export default function ConversationThread() {
   const { threadId } = useParams<{ threadId: string }>();
@@ -51,6 +54,27 @@ export default function ConversationThread() {
     },
   });
 
+  // For providers: check if this thread is unlocked (only required for hot leads — threads without a request_id)
+  const isProvider = profile?.role === 'provider';
+  const isHotLead = !!thread && !thread.request_id && thread.provider_id === user?.id;
+
+  const { data: unlock } = useQuery({
+    queryKey: ['thread-unlock', thread?.id, user?.id],
+    enabled: !!thread && isProvider && isHotLead,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('provider_unlocks')
+        .select('id')
+        .eq('provider_id', user!.id)
+        .eq('unlock_type', 'thread')
+        .eq('target_id', thread!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const locked = isProvider && isHotLead && !unlock;
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
@@ -60,6 +84,10 @@ export default function ConversationThread() {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
+    if (locked) {
+      toast.error('Unlock this lead first to reply.');
+      return;
+    }
     await supabase.from('messages').insert({
       thread_id: thread.id,
       sender_id: user.id,
@@ -69,17 +97,62 @@ export default function ConversationThread() {
     queryClient.invalidateQueries({ queryKey: ['messages', threadId] });
   };
 
+  const handleUnlock = async () => {
+    const { data, error } = await supabase.rpc('unlock_provider_target' as any, {
+      _unlock_type: 'thread',
+      _target_id: thread.id,
+      _cost: UNLOCK_COST,
+    });
+    if (error || !(data as any)?.ok) {
+      toast.error((data as any)?.reason === 'insufficient_credits' ? 'Not enough credits to unlock this lead' : 'Failed to unlock lead');
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ['thread-unlock', thread.id, user.id] });
+    queryClient.invalidateQueries({ queryKey: ['provider-credits'] });
+    queryClient.invalidateQueries({ queryKey: ['provider-unlocks'] });
+    toast.success('Lead unlocked!');
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <div className="flex items-center gap-3 px-4 py-3 border-b bg-card">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5" /></Button>
         <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center font-display font-bold text-sm text-muted-foreground">
-          {otherProfile?.first_name?.[0] || '?'}
+          {locked ? <Lock className="h-4 w-4" /> : (otherProfile?.first_name?.[0] || '?')}
         </div>
-        <p className="font-medium"><ClickableName userId={otherId || ''}>{otherProfile?.first_name} {otherProfile?.last_name}</ClickableName></p>
+        {locked ? (
+          <p className="font-medium text-muted-foreground">
+            {otherProfile?.first_name?.[0]}*** {otherProfile?.last_name?.[0]}***
+          </p>
+        ) : (
+          <p className="font-medium"><ClickableName userId={otherId || ''}>{otherProfile?.first_name} {otherProfile?.last_name}</ClickableName></p>
+        )}
       </div>
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-        {messages.map((msg: any) => {
+        {locked ? (
+          <div className="flex flex-col items-center justify-center h-full text-center px-6 space-y-4">
+            <div className="h-14 w-14 rounded-full bg-destructive/10 flex items-center justify-center">
+              <Lock className="h-6 w-6 text-destructive" />
+            </div>
+            <div className="space-y-1">
+              <p className="font-semibold">This is a Hot Lead</p>
+              <p className="text-sm text-muted-foreground max-w-xs">
+                A client messaged you directly. Unlock to view their messages and reply ({UNLOCK_COST} credit).
+              </p>
+            </div>
+            {messages[0] && (
+              <div className="rounded-lg bg-muted/50 p-3 max-w-xs w-full">
+                <p className="text-sm text-muted-foreground italic blur-[3px] select-none">
+                  {(messages[0] as any).text?.substring(0, 80) || 'Message preview...'}
+                </p>
+              </div>
+            )}
+            <Button onClick={handleUnlock} className="rounded-xl gap-1.5">
+              <Unlock className="h-4 w-4" />
+              Unlock Lead ({UNLOCK_COST} credit)
+            </Button>
+          </div>
+        ) : messages.map((msg: any) => {
           const isMe = msg.sender_id === user.id;
           return (
             <div key={msg.id} className={cn('flex', isMe ? 'justify-end' : 'justify-start')}>
@@ -91,10 +164,12 @@ export default function ConversationThread() {
         })}
         <div ref={bottomRef} />
       </div>
-      <form onSubmit={handleSend} className="flex items-center gap-2 px-4 py-3 border-t bg-card">
-        <Input value={text} onChange={e => setText(e.target.value)} placeholder="Type a message..." className="flex-1 rounded-full" />
-        <Button type="submit" size="icon" className="rounded-full shrink-0" disabled={!text.trim()}><Send className="h-4 w-4" /></Button>
-      </form>
+      {!locked && (
+        <form onSubmit={handleSend} className="flex items-center gap-2 px-4 py-3 border-t bg-card">
+          <Input value={text} onChange={e => setText(e.target.value)} placeholder="Type a message..." className="flex-1 rounded-full" />
+          <Button type="submit" size="icon" className="rounded-full shrink-0" disabled={!text.trim()}><Send className="h-4 w-4" /></Button>
+        </form>
+      )}
     </div>
   );
 }
