@@ -73,6 +73,19 @@ export default function MessageList() {
     },
   });
 
+  // For providers: fetch unlocks so we can hide hot lead previews until paid for
+  const { data: providerUnlocks = [] } = useQuery({
+    queryKey: ['provider-unlocks', user?.id],
+    enabled: !!user && !isClient,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('provider_unlocks')
+        .select('*')
+        .eq('provider_id', user!.id);
+      return data || [];
+    },
+  });
+
   return (
     <div className="min-h-screen pb-20">
       <div className="px-5 pt-8 pb-6 space-y-4">
@@ -130,6 +143,9 @@ export default function MessageList() {
               const otherId = isClient ? thread.provider_id : thread.client_id;
               const other = otherProfiles.find((p: any) => p.user_id === otherId);
               const lastMsg = lastMessages.find((m: any) => m.thread_id === thread.id);
+              const isHotLead = !isClient && !thread.request_id;
+              const isUnlocked = providerUnlocks.some((u: any) => u.unlock_type === 'thread' && u.target_id === thread.id);
+              const locked = isHotLead && !isUnlocked;
               return (
                 <button key={thread.id} onClick={() => navigate(`${basePath}/messages/${thread.id}`)} className="w-full text-left rounded-xl border bg-card p-4 hover:shadow-sm transition-shadow">
                   <div className="flex items-center gap-3">
@@ -137,8 +153,16 @@ export default function MessageList() {
                       {other?.first_name?.[0] || '?'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm"><ClickableName userId={otherId}>{other?.first_name} {other?.last_name}</ClickableName></p>
-                      <p className="text-xs text-muted-foreground truncate">{lastMsg?.text || 'Start a conversation'}</p>
+                      {locked ? (
+                        <p className="font-medium text-sm text-muted-foreground">
+                          🔒 {other?.first_name?.[0]}*** {other?.last_name?.[0]}*** · Hot Lead
+                        </p>
+                      ) : (
+                        <p className="font-medium text-sm"><ClickableName userId={otherId}>{other?.first_name} {other?.last_name}</ClickableName></p>
+                      )}
+                      <p className={cn("text-xs text-muted-foreground truncate", locked && "italic blur-[3px] select-none")}>
+                        {lastMsg?.text || 'Start a conversation'}
+                      </p>
                     </div>
                   </div>
                 </button>
