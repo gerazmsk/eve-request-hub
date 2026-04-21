@@ -7,6 +7,7 @@ import { ClickableName } from '@/components/ClickableName';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
 export default function MessageList() {
   const { user, profile } = useAuth();
