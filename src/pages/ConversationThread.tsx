@@ -180,21 +180,28 @@ export default function ConversationThread() {
               <Lock className="h-6 w-6 text-destructive" />
             </div>
             <div className="space-y-1">
-              <p className="font-semibold">This is a Hot Lead</p>
+              <p className="font-semibold">
+                {isReactivated ? 'Reactivated Lead' : 'This is a Hot Lead'}
+              </p>
               <p className="text-sm text-muted-foreground max-w-xs">
-                A client messaged you directly. Unlock to view their messages and reply ({UNLOCK_COST} credit).
+                {isReactivated
+                  ? `This conversation has been quiet for over ${REACTIVATION_DAYS} days. The client just reached out again — unlock the reactivated lead to view their new message and reply (${UNLOCK_COST} credit).`
+                  : `A client messaged you directly. Unlock to view their messages and reply (${UNLOCK_COST} credit).`}
+              </p>
+              <p className="text-[11px] text-muted-foreground/80 max-w-xs pt-1">
+                You're only charged once per lead. We won't charge you again unless the conversation goes silent for {REACTIVATION_DAYS}+ days and the client comes back.
               </p>
             </div>
             {messages[0] && (
               <div className="rounded-lg bg-muted/50 p-3 max-w-xs w-full">
                 <p className="text-sm text-muted-foreground italic blur-[3px] select-none">
-                  {(messages[0] as any).text?.substring(0, 80) || 'Message preview...'}
+                  {((messages[messages.length - 1] as any)?.text || (messages[0] as any).text)?.substring(0, 80) || 'Message preview...'}
                 </p>
               </div>
             )}
             <Button onClick={handleUnlock} className="rounded-xl gap-1.5">
               <Unlock className="h-4 w-4" />
-              Unlock Lead ({UNLOCK_COST} credit)
+              {isReactivated ? `Unlock Reactivated Lead (${UNLOCK_COST} credit)` : `Unlock Lead (${UNLOCK_COST} credit)`}
             </Button>
           </div>
         ) : messages.map((msg: any) => {
