@@ -11,6 +11,36 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const UNLOCK_COST = 1;
+const REACTIVATION_DAYS = 60;
+const REACTIVATION_MS = REACTIVATION_DAYS * 24 * 60 * 60 * 1000;
+
+/**
+ * Find the most recent "reactivation point" in a thread.
+ * A reactivation point is a client message that arrives ≥60 days after the previous message
+ * from either party. The first message of a hot-lead thread (no request_id) is also a
+ * reactivation point — that's the initial unlock.
+ * Returns the timestamp (ms) of that message, or null if no reactivation gate applies.
+ */
+function findReactivationPoint(
+  messages: Array<{ created_at: string; sender_id: string }>,
+  clientId: string,
+  isHotLead: boolean,
+): number | null {
+  if (!messages.length) return null;
+  let latest: number | null = null;
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    const ts = new Date(msg.created_at).getTime();
+    if (msg.sender_id !== clientId) continue;
+    if (i === 0) {
+      if (isHotLead) latest = ts;
+      continue;
+    }
+    const prevTs = new Date(messages[i - 1].created_at).getTime();
+    if (ts - prevTs >= REACTIVATION_MS) latest = ts;
+  }
+  return latest;
+}
 
 export default function ConversationThread() {
   const { threadId } = useParams<{ threadId: string }>();
@@ -54,26 +84,41 @@ export default function ConversationThread() {
     },
   });
 
-  // For providers: check if this thread is unlocked (only required for hot leads — threads without a request_id)
+  // For providers: check if this thread is unlocked. A new unlock is required for:
+  //   1. Initial hot leads (threads created without a request_id), AND
+  //   2. Re-engagements where the client sends a message ≥60 days after the previous one.
   const isProvider = profile?.role === 'provider';
   const isHotLead = !!thread && !thread.request_id && thread.provider_id === user?.id;
+  const providerOnThread = !!thread && isProvider && thread.provider_id === user?.id;
 
-  const { data: unlock } = useQuery({
-    queryKey: ['thread-unlock', thread?.id, user?.id],
-    enabled: !!thread && isProvider && isHotLead,
+  const { data: unlocks = [] } = useQuery({
+    queryKey: ['thread-unlocks', thread?.id, user?.id],
+    enabled: !!thread && providerOnThread,
     queryFn: async () => {
       const { data } = await supabase
         .from('provider_unlocks')
-        .select('id')
+        .select('id, created_at')
         .eq('provider_id', user!.id)
         .eq('unlock_type', 'thread')
         .eq('target_id', thread!.id)
-        .maybeSingle();
-      return data;
+        .order('created_at', { ascending: false });
+      return data || [];
     },
   });
 
-  const locked = isProvider && isHotLead && !unlock;
+  const reactivationPoint = thread
+    ? findReactivationPoint(messages as any, thread.client_id, isHotLead)
+    : null;
+  const latestUnlockTs = unlocks[0] ? new Date((unlocks[0] as any).created_at).getTime() : null;
+  const isReactivated =
+    providerOnThread &&
+    reactivationPoint !== null &&
+    !isHotLead &&
+    (latestUnlockTs === null || latestUnlockTs < reactivationPoint);
+  const locked =
+    providerOnThread &&
+    reactivationPoint !== null &&
+    (latestUnlockTs === null || latestUnlockTs < reactivationPoint);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -107,10 +152,10 @@ export default function ConversationThread() {
       toast.error((data as any)?.reason === 'insufficient_credits' ? 'Not enough credits to unlock this lead' : 'Failed to unlock lead');
       return;
     }
-    queryClient.invalidateQueries({ queryKey: ['thread-unlock', thread.id, user.id] });
+    queryClient.invalidateQueries({ queryKey: ['thread-unlocks', thread.id, user.id] });
     queryClient.invalidateQueries({ queryKey: ['provider-credits'] });
     queryClient.invalidateQueries({ queryKey: ['provider-unlocks'] });
-    toast.success('Lead unlocked!');
+    toast.success(isReactivated ? 'Reactivated lead unlocked!' : 'Lead unlocked!');
   };
 
   return (
@@ -135,21 +180,28 @@ export default function ConversationThread() {
               <Lock className="h-6 w-6 text-destructive" />
             </div>
             <div className="space-y-1">
-              <p className="font-semibold">This is a Hot Lead</p>
+              <p className="font-semibold">
+                {isReactivated ? 'Reactivated Lead' : 'This is a Hot Lead'}
+              </p>
               <p className="text-sm text-muted-foreground max-w-xs">
-                A client messaged you directly. Unlock to view their messages and reply ({UNLOCK_COST} credit).
+                {isReactivated
+                  ? `This conversation has been quiet for over ${REACTIVATION_DAYS} days. The client just reached out again — unlock the reactivated lead to view their new message and reply (${UNLOCK_COST} credit).`
+                  : `A client messaged you directly. Unlock to view their messages and reply (${UNLOCK_COST} credit).`}
+              </p>
+              <p className="text-[11px] text-muted-foreground/80 max-w-xs pt-1">
+                You're only charged once per lead. We won't charge you again unless the conversation goes silent for {REACTIVATION_DAYS}+ days and the client comes back.
               </p>
             </div>
             {messages[0] && (
               <div className="rounded-lg bg-muted/50 p-3 max-w-xs w-full">
                 <p className="text-sm text-muted-foreground italic blur-[3px] select-none">
-                  {(messages[0] as any).text?.substring(0, 80) || 'Message preview...'}
+                  {((messages[messages.length - 1] as any)?.text || (messages[0] as any).text)?.substring(0, 80) || 'Message preview...'}
                 </p>
               </div>
             )}
             <Button onClick={handleUnlock} className="rounded-xl gap-1.5">
               <Unlock className="h-4 w-4" />
-              Unlock Lead ({UNLOCK_COST} credit)
+              {isReactivated ? `Unlock Reactivated Lead (${UNLOCK_COST} credit)` : `Unlock Lead (${UNLOCK_COST} credit)`}
             </Button>
           </div>
         ) : messages.map((msg: any) => {
