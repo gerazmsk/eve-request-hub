@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,6 +53,11 @@ export default function LogIn() {
         <Button type="submit" className="w-full h-12 rounded-xl text-base" disabled={loading}>
           {loading ? 'Logging in...' : 'Log In'}
         </Button>
+        <div className="text-center">
+          <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+            Forgot password?
+          </Link>
+        </div>
       </form>
     </div>
   );
