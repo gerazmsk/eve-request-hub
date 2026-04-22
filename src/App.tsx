@@ -8,6 +8,8 @@ import Welcome from "./pages/Welcome";
 import AccountPage from "./pages/AccountPage";
 import SignUp from "./pages/SignUp";
 import LogIn from "./pages/LogIn";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import ClientHome from "./pages/ClientHome";
 import ProviderListing from "./pages/ProviderListing";
 import ProviderProfileView from "./pages/ProviderProfileView";
@@ -61,6 +63,8 @@ const AppRoutes = () => (
     <Route path="/account" element={<AuthRedirect><AccountPage /></AuthRedirect>} />
     <Route path="/signup" element={<AuthRedirect><SignUp /></AuthRedirect>} />
     <Route path="/login" element={<AuthRedirect><LogIn /></AuthRedirect>} />
+    <Route path="/forgot-password" element={<ForgotPassword />} />
+    <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/privacy" element={<PrivacyPolicy />} />
     <Route path="/terms" element={<TermsOfService />} />
 
